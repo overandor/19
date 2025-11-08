@@ -18,7 +18,11 @@ def fetch_prices_univ2(manifest):
         try:
             raw=eth_call(rpc, p["pair"], GET_RESERVES)
             r0,r1,ts=parse_res(raw)
-            mid=float((Decimal(r1)/(10**p["token1"]["decimals"])) / (Decimal(r0)/(10**p["token0"]["decimals"])))
+            base = Decimal(r0) / (Decimal(10) ** p["token0"]["decimals"])
+            quote = Decimal(r1) / (Decimal(10) ** p["token1"]["decimals"])
+            if base == 0 or quote == 0:
+                raise ZeroDivisionError("empty reserves")
+            mid=float(base / quote)
             out.append({"symbol":p["symbol"],"venue":p["venue"],"mid":mid,"ts":ts,"fees_bps_roundtrip":p.get("fees_bps_roundtrip",30)})
         except Exception as e:
             out.append({"symbol":p.get("symbol","?"),"venue":p.get("venue","?"),"error":str(e)})

@@ -16,6 +16,8 @@ jobs:
         with: { python-version: '3.11' }
       - name: Install
         run: pip install -r requirements.txt
+      - name: Syntax check
+        run: python -m compileall backend.py scripts
       - name: Combinatorics prompting (local LLM optional)
         env:
           LLM_BIN: ollama
@@ -24,6 +26,9 @@ jobs:
           python scripts/prompt_combinator.py || echo "LLM rank fallback"
       - name: Harvest signals (read-only)
         run: python scripts/harvest_signals.py
+      - name: Build container image
+        if: github.event_name != 'schedule'
+        run: docker build -t alpha-console .
       - name: Commit artifacts
         run: |
           git config user.name "cortex-bot"

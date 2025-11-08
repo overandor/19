@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  backend:
+    build: .
+    ports:
+      - "8765:8765"
+    restart: unless-stopped
+  dashboard:
+    image: caddy:2.7.6-alpine
+    depends_on:
+      - backend
+    volumes:
+      - ./index.html:/usr/share/caddy/index.html:ro
+      - ./signals.json:/usr/share/caddy/signals.json:ro
+      - ./cache:/usr/share/caddy/cache:ro
+    environment:
+      CADDY_GLOBAL_OPTIONS: ""
+    command: ["caddy", "file-server", "--root", "/usr/share/caddy", "--listen", ":8080"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

@@ -35,7 +35,14 @@ def best_edges(prices, targets):
         best_bid=max(rows, key=lambda r:r["mid"])
         if not focus_filter(s, best_ask["venue"], targets) and not focus_filter(s, best_bid["venue"], targets):
             continue
-        fees=max(best_ask["fees_bps_roundtrip"], best_bid["fees_bps_roundtrip"])
+        def _fee(row):
+            val=row.get("fees_bps_roundtrip")
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return 0.0
+
+        fees=_fee(best_ask)+_fee(best_bid)
         e=edge_bps(best_bid["mid"], best_ask["mid"], fees_bps=fees, slip_bps=SLIP_BPS, buffer_bps=BUF_BPS)
         signals.append({
             "chain":"EVM",

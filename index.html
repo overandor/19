@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Alpha Console · Neomorphic Surface</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#0b111b;
+  --bg-alt:#0f1726;
+  --fg:#e7edf7;
+  --muted:#96a4c2;
+  --accent:#7aa2ff;
+  --accent-soft:rgba(122,162,255,0.18);
+  --shadow-hi:rgba(19,26,39,0.92);
+  --shadow-lo:rgba(32,43,63,0.65);
+  --shadow-inset-hi:rgba(12,16,26,0.8);
+  --shadow-inset-lo:rgba(37,48,71,0.45);
+  font-family:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(circle at 20% 20%,#121b2c 0%,#080c14 55%,#05070c 100%);
+  color:var(--fg);
+  display:flex;
+  justify-content:center;
+  padding:32px 18px 42px;
+}
+.layout {
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+.neo-card {
+  background:var(--bg-alt);
+  border-radius:18px;
+  border:1px solid rgba(122,162,255,0.08);
+  padding:22px 24px;
+  box-shadow:-22px -22px 32px rgba(40,54,82,0.16),
+              18px 18px 28px rgba(0,0,0,0.55),
+              inset 1px 1px 0 rgba(255,255,255,0.02);
+  position:relative;
+  overflow:hidden;
+}
+.neo-card::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(140deg,rgba(122,162,255,0.05),transparent 55%);
+  pointer-events:none;
+}
+header.neo-card {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  padding:20px 26px;
+}
+header h1 {
+  margin:0;
+  font-size:18px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.status-pill {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  background:var(--bg);
+  padding:10px 18px;
+  border-radius:999px;
+  font-size:12px;
+  border:1px solid rgba(122,162,255,0.12);
+  box-shadow:-8px -8px 16px rgba(40,54,82,0.2), 9px 9px 18px rgba(0,0,0,0.55);
+}
+.status-dot {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  box-shadow:0 0 12px rgba(0,0,0,0.45);
+}
+.status-online { background:#3bffb7; }
+.status-offline { background:#ff6b6b; }
+main.grid {
+  display:grid;
+  gap:22px;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+}
+section h2 {
+  margin:0 0 14px 0;
+  font-size:13px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:center;
+  margin-bottom:16px;
+}
+button,input[type="text"],input[type="checkbox"],label.selectable {
+  font-family:inherit;
+  font-size:12px;
+}
+button {
+  background:var(--bg);
+  color:var(--fg);
+  border:1px solid rgba(122,162,255,0.22);
+  border-radius:14px;
+  padding:10px 18px;
+  cursor:pointer;
+  transition:all .15s ease;
+  box-shadow:-7px -7px 16px rgba(40,54,82,0.22), 7px 7px 18px rgba(0,0,0,0.55);
+}
+button:hover { box-shadow:-6px -6px 14px rgba(40,54,82,0.15), 6px 6px 16px rgba(0,0,0,0.45); }
+button:active { box-shadow:inset 6px 6px 12px rgba(0,0,0,0.5), inset -4px -4px 10px rgba(40,54,82,0.25); }
+button:disabled {
+  opacity:0.55;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+label.inline {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border-radius:14px;
+  border:1px solid rgba(122,162,255,0.1);
+  background:var(--bg);
+  box-shadow:-7px -7px 16px rgba(40,54,82,0.18), 7px 7px 18px rgba(0,0,0,0.52);
+  font-size:12px;
+}
+label.inline input[type="checkbox"] { width:16px; height:16px; }
+input[type="text"] {
+  background:var(--bg);
+  border:1px solid rgba(122,162,255,0.18);
+  border-radius:14px;
+  padding:10px 14px;
+  color:var(--fg);
+  width:240px;
+  box-shadow:inset 5px 5px 10px rgba(0,0,0,0.45), inset -5px -5px 12px rgba(40,54,82,0.25);
+}
+textarea {
+  width:100%;
+  min-height:160px;
+  border-radius:18px;
+  border:1px solid rgba(122,162,255,0.16);
+  padding:16px;
+  background:var(--bg);
+  color:#9cc4ff;
+  font-size:12px;
+  box-shadow:inset 10px 10px 18px rgba(0,0,0,0.52), inset -10px -10px 18px rgba(40,54,82,0.28);
+  resize:vertical;
+}
+.tag {
+  display:inline-flex;
+  align-items:center;
+  padding:7px 14px;
+  margin:0 8px 8px 0;
+  border-radius:999px;
+  border:1px solid rgba(122,162,255,0.2);
+  background:var(--bg);
+  color:var(--accent);
+  box-shadow:-6px -6px 14px rgba(40,54,82,0.18), 6px 6px 16px rgba(0,0,0,0.5);
+}
+.table-wrapper {
+  overflow:auto;
+  max-height:360px;
+  border-radius:16px;
+  border:1px solid rgba(122,162,255,0.1);
+  box-shadow:inset 10px 10px 18px rgba(0,0,0,0.55), inset -10px -10px 18px rgba(40,54,82,0.25);
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th,td {
+  padding:11px 14px;
+  text-align:left;
+  border-bottom:1px solid rgba(122,162,255,0.08);
+  white-space:nowrap;
+}
+th {
+  position:sticky;
+  top:0;
+  background:var(--bg-alt);
+  color:var(--muted);
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.edge-pos { color:#3bffb7; }
+.edge-neg { color:#ff6b9c; }
+small { color:var(--muted); display:block; margin-top:14px; }
+@media (max-width:780px) {
+  body { padding:24px 14px 36px; }
+  header.neo-card { flex-direction:column; align-items:flex-start; }
+  input[type="text"] { width:200px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <header class="neo-card">
+    <h1>Autonomous Alpha Console</h1>
+    <div class="status-pill" id="connection">
+      <span class="status-dot status-offline" id="status-led"></span>
+      <span id="status-text">disconnected</span>
+    </div>
+  </header>
+  <main class="grid">
+    <section id="control-panel" class="neo-card">
+      <h2>Control</h2>
+      <div class="controls">
+        <button id="btn-connect">Connect</button>
+        <button id="btn-focus" disabled>Regenerate Focus</button>
+        <button id="btn-scan" disabled>Scan Now</button>
+        <label class="inline"><input type="checkbox" id="persist"/> persist artifacts</label>
+        <label class="inline" style="gap:10px;"><span>WS URL</span><input id="ws-url" type="text" placeholder="auto"/></label>
+      </div>
+      <small>Live WebSocket `/ws` orchestration with deterministic fallbacks to `/focus`, `/scan`, and `signals.json`.</small>
+    </section>
+    <section id="focus" class="neo-card">
+      <h2>Focus Targets</h2>
+      <div id="focus-tags" style="display:flex;flex-wrap:wrap;"></div>
+      <textarea id="focus-raw" readonly placeholder="LLM transcript or fallback payload"></textarea>
+    </section>
+    <section id="signals" class="neo-card">
+      <h2>Signals</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Buy @</th><th>Sell @</th><th>Bid</th><th>Ask</th><th>Gross (bps)</th><th>Net (bps)</th><th>TTL</th><th>Timestamp</th></tr>
+          </thead>
+          <tbody id="signal-rows"></tbody>
+        </table>
+      </div>
+      <small id="signals-meta">waiting for data</small>
+    </section>
+    <section id="log-panel" class="neo-card">
+      <h2>Event Log</h2>
+      <textarea id="log" readonly></textarea>
+    </section>
+  </main>
+</div>
+<script>
+(function(){
+  const statusLed=document.getElementById('status-led');
+  const statusText=document.getElementById('status-text');
+  const connectBtn=document.getElementById('btn-connect');
+  const focusBtn=document.getElementById('btn-focus');
+  const scanBtn=document.getElementById('btn-scan');
+  const persistBox=document.getElementById('persist');
+  const wsInput=document.getElementById('ws-url');
+  const focusTags=document.getElementById('focus-tags');
+  const focusRaw=document.getElementById('focus-raw');
+  const logArea=document.getElementById('log');
+  const signalRows=document.getElementById('signal-rows');
+  const signalsMeta=document.getElementById('signals-meta');
+
+  let socket=null;
+  let reconnecting=false;
+
+  function appendLog(message){
+    const stamp=new Date().toISOString();
+    logArea.value=`[${stamp}] ${message}\n`+logArea.value;
+  }
+
+  function setStatus(online){
+    statusLed.className='status-dot '+(online?'status-online':'status-offline');
+    statusText.textContent=online?'connected':'disconnected';
+    connectBtn.textContent=online?'Disconnect':'Connect';
+    focusBtn.disabled=!online;
+    scanBtn.disabled=!online;
+  }
+
+  function inferWsUrl(){
+    const manual=wsInput.value.trim();
+    if(manual) return manual;
+    const params=new URLSearchParams(window.location.search);
+    const param=params.get('ws');
+    if(param) return param;
+    const proto=window.location.protocol==='https:'?'wss':'ws';
+    const host=window.location.host||'localhost:8765';
+    return `${proto}://${host.replace(/\/$/,'')}/ws`;
+  }
+
+  function renderFocus(payload){
+    focusTags.innerHTML='';
+    (payload.targets||[]).forEach(target=>{
+      const el=document.createElement('span');
+      el.className='tag';
+      el.textContent=target;
+      focusTags.appendChild(el);
+    });
+    focusRaw.value=payload.raw||'';
+    appendLog(`focus source=${payload.source||'unknown'} entropy=${payload.entropy||''}`);
+  }
+
+  function renderSignals(payload){
+    const rows=payload.signals||[];
+    signalRows.innerHTML='';
+    rows.forEach(sig=>{
+      const tr=document.createElement('tr');
+      const edgeClass=sig.edge_bps>=0?'edge-pos':'edge-neg';
+      const ts=new Date((sig.ts||payload.generated_at||0)*1000).toISOString();
+      tr.innerHTML=`<td>${sig.symbol||'-'}</td>`+
+        `<td>${sig.buy_venue||'-'}</td>`+
+        `<td>${sig.sell_venue||'-'}</td>`+
+        `<td>${Number(sig.best_bid||0).toFixed(6)}</td>`+
+        `<td>${Number(sig.best_ask||0).toFixed(6)}</td>`+
+        `<td>${Number(sig.edge_bps_gross||0).toFixed(2)}</td>`+
+        `<td class="${edgeClass}">${Number(sig.edge_bps||0).toFixed(2)}</td>`+
+        `<td>${sig.ttl_seconds||0}s</td>`+
+        `<td>${ts}</td>`;
+      signalRows.appendChild(tr);
+    });
+    signalsMeta.textContent=`generated_at=${new Date((payload.generated_at||0)*1000).toISOString()} (${rows.length} rows)`;
+    appendLog(`signals received (${rows.length})`);
+  }
+
+  function handleMessage(evt){
+    try{
+      const data=JSON.parse(evt.data);
+      if(data.type==='focus'){
+        renderFocus(data.payload||{});
+      }else if(data.type==='signals'){
+        renderSignals(data.payload||{});
+      }else if(data.type==='error'){
+        appendLog(`error: ${data.error}`);
+      }else{
+        appendLog(`message ${evt.data}`);
+      }
+    }catch(err){
+      appendLog(`decode-failure ${err}`);
+    }
+  }
+
+  function connect(){
+    if(socket){
+      socket.close();
+      socket=null;
+      setStatus(false);
+      return;
+    }
+    const url=inferWsUrl();
+    appendLog(`connecting ${url}`);
+    socket=new WebSocket(url);
+    socket.addEventListener('open',()=>{
+      setStatus(true);
+      appendLog('websocket open');
+      if(!reconnecting){
+        requestFocus(false);
+        requestSignals(false);
+      }
+      reconnecting=false;
+    });
+    socket.addEventListener('close',()=>{
+      appendLog('websocket closed');
+      setStatus(false);
+      if(socket){
+        socket=null;
+        setTimeout(()=>{reconnecting=true;connect();},2500);
+      }
+    });
+    socket.addEventListener('error',err=>{
+      appendLog(`websocket error ${err.message||err}`);
+    });
+    socket.addEventListener('message',handleMessage);
+  }
+
+  function send(payload){
+    if(socket&&socket.readyState===WebSocket.OPEN){
+      socket.send(JSON.stringify(payload));
+    }else{
+      appendLog('ws not ready, invoking fallback fetch');
+      fallbackRequest(payload.type);
+    }
+  }
+
+  function requestFocus(persist){
+    send({type:'focus',persist});
+  }
+
+  function requestSignals(persist){
+    send({type:'scan',persist});
+  }
+
+  async function fallbackRequest(kind){
+    if(kind==='focus'){
+      appendLog('fallback focus via /focus');
+      try{
+        const res=await fetch('/focus',{method:'POST',cache:'no-store'});
+        if(res.ok){
+          renderFocus(await res.json());
+          return;
+        }
+      }catch(_){ }
+      try{
+        const res=await fetch('cache/focus.json?cb='+Date.now());
+        if(res.ok){
+          renderFocus(await res.json());
+        }
+      }catch(err){
+        appendLog(`focus fallback failed ${err}`);
+      }
+    }else if(kind==='scan'){
+      appendLog('fallback scan via /scan');
+      try{
+        const res=await fetch('/scan',{method:'POST',cache:'no-store'});
+        if(res.ok){
+          renderSignals(await res.json());
+          return;
+        }
+      }catch(_){ }
+      try{
+        const res=await fetch('signals.json?cb='+Date.now());
+        if(res.ok){
+          renderSignals(await res.json());
+        }
+      }catch(err){
+        appendLog(`scan fallback failed ${err}`);
+      }
+    }
+  }
+
+  connectBtn.addEventListener('click',connect);
+  focusBtn.addEventListener('click',()=>requestFocus(persistBox.checked));
+  scanBtn.addEventListener('click',()=>requestSignals(persistBox.checked));
+
+  connect();
+})();
+</script>
+</body>
+</html>

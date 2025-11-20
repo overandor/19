@@ -1,1 +1,1 @@
-{"targets":[],"entropy":""}
+{"entropy":"6dfaa4e89f393a56a69108a0d8a244f4cc06d74268bbfde078bc48935873cd10","targets":["price_gap|UNISWAP_V2|SOL/USDC","depth_kink|SUSHISWAP|SOL/USDC","stale_oracle|UNISWAP_V2|SOL/USDC","stale_oracle|RAYDIUM|WETH/USDC","triangular_hint|SUSHISWAP|WETH/USDC","price_gap|UNISWAP_V2|WETH/USDC","triangular_hint|RAYDIUM|SOL/USDC","triangular_hint|UNISWAP_V2|WETH/USDC"],"source":"fallback","raw":"[Errno 2] No such file or directory: 'ollama'"}

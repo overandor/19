@@ -1,1 +1,1 @@
-{"generated_at":0,"signals":[]}
+{"generated_at":1762587233,"signals":[{"chain":"EVM","symbol":"WETH/USDC","best_bid":3438.2260095467145,"best_ask":3435.2318871215884,"sell_venue":"UNISWAP_V2","buy_venue":"SUSHISWAP","edge_bps_gross":8.715925222838104,"edge_bps":-26.284074777161894,"ttl_seconds":30,"ts":1762587233,"assumptions":{"fees_bps":30,"slip_bps":3,"buffer_bps":2}}]}

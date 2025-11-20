@@ -1,14 +1,14 @@
 {
-  "rpc_url": "https://YOUR_SOLANA_RPC",
+  "rpc_url": "https://api.mainnet-beta.solana.com",
   "pyth_prices": [
-    {"symbol":"SOL/USD","account":"PYTH_PRICE_ACCOUNT_BASE58"}
+    {"symbol": "SOL/USD", "account": "J83w4HKfqxwcq3BHY8MgZUKs9grzwp8dN1iR5mCe7u5J"}
   ],
   "pools": [
     {
-      "symbol":"SOL/USDC",
-      "program":"RAYDIUM_V4",
-      "state":"RAYDIUM_POOL_STATE_ACCOUNT_BASE58",
-      "venue":"RAYDIUM",
+      "symbol": "SOL/USDC",
+      "program": "RAYDIUM_V4",
+      "state": "8HoQnePLqPj4M7PUDzfw8e3Ymdwgc7NLGnaTUapubyvu",
+      "venue": "RAYDIUM",
       "fees_bps_roundtrip": 25
     }
   ]

@@ -1,20 +1,32 @@
 {
-  "rpc_url": "https://YOUR_EVM_RPC",
+  "rpc_url": "https://eth.llamarpc.com",
   "pairs": [
     {
       "symbol": "WETH/USDC",
-      "pair": "0x0000000000000000000000000000000000000000",
-      "token0": {"symbol":"WETH","decimals":18},
-      "token1": {"symbol":"USDC","decimals":6},
-      "venue": "DEX_A",
-      "fees_bps_roundtrip": 20
+      "pair": "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+      "token0": {
+        "symbol": "USDC",
+        "decimals": 6
+      },
+      "token1": {
+        "symbol": "WETH",
+        "decimals": 18
+      },
+      "venue": "UNISWAP_V2",
+      "fees_bps_roundtrip": 12
     },
     {
       "symbol": "WETH/USDC",
-      "pair": "0x0000000000000000000000000000000000000000",
-      "token0": {"symbol":"WETH","decimals":18},
-      "token1": {"symbol":"USDC","decimals":6},
-      "venue": "DEX_B",
+      "pair": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+      "token0": {
+        "symbol": "USDC",
+        "decimals": 6
+      },
+      "token1": {
+        "symbol": "WETH",
+        "decimals": 18
+      },
+      "venue": "SUSHISWAP",
       "fees_bps_roundtrip": 30
     }
   ]

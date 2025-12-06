@@ -64,7 +64,9 @@ def _best_edges(prices: Iterable[Dict], targets: Iterable[str]) -> List[Dict[str
             symbol, best_bid.get("venue", ""), targets
         ):
             continue
-        fees = max(best_ask.get("fees_bps_roundtrip", 0), best_bid.get("fees_bps_roundtrip", 0))
+        ask_fee = float(best_ask.get("fees_bps_roundtrip", 0) or 0)
+        bid_fee = float(best_bid.get("fees_bps_roundtrip", 0) or 0)
+        fees = ask_fee + bid_fee
         gross_edge = edge_bps(best_bid["mid"], best_ask["mid"], fees_bps=0, slip_bps=0, buffer_bps=0)
         edge = edge_bps(best_bid["mid"], best_ask["mid"], fees_bps=fees, slip_bps=SLIP_BPS, buffer_bps=BUFFER_BPS)
         signals.append(
@@ -81,6 +83,8 @@ def _best_edges(prices: Iterable[Dict], targets: Iterable[str]) -> List[Dict[str
                 "ts": now,
                 "assumptions": {
                     "fees_bps": fees,
+                    "buy_fees_bps": ask_fee,
+                    "sell_fees_bps": bid_fee,
                     "slip_bps": SLIP_BPS,
                     "buffer_bps": BUFFER_BPS,
                 },

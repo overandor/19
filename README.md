@@ -41,6 +41,7 @@ python backend.py  # serves ws://0.0.0.0:8765/ws
 python -m http.server 8080  # optional static hosting for index.html
 ```
 Open `http://localhost:8080/index.html` and connect. The console targets `http://<host>:8765` for API/WebSocket by default; override via `?api=` (REST) and `?ws=` (WebSocket) or the control panel input.
+Open `http://localhost:8080/index.html` and connect (defaults to `ws://localhost:8765/ws`; override via `?ws=` or the control panel).
 
 ## Signal schema
 ```json

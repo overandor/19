@@ -283,12 +283,27 @@ small { color:var(--muted); display:block; margin-top:14px; }
     scanBtn.disabled=!online;
   }
 
+  function backendBase(){
+    const params=new URLSearchParams(window.location.search);
+    const api=params.get('api');
+    if(api){
+      try{ return new URL(api).toString().replace(/\/$/,''); }catch(_){ /* ignore */ }
+    }
+    const host=window.location.hostname||'localhost';
+    const proto=window.location.protocol==='https:'?'https:':'http:';
+    return `${proto}//${host}:8765`;
+  }
+
   function inferWsUrl(){
     const manual=wsInput.value.trim();
     if(manual) return manual;
     const params=new URLSearchParams(window.location.search);
     const param=params.get('ws');
     if(param) return param;
+    const base=new URL(backendBase());
+    base.protocol=base.protocol==='https:'?'wss:':'ws:';
+    base.pathname='/ws';
+    return base.toString();
     const proto=window.location.protocol==='https:'?'wss':'ws';
     const host=window.location.host||'localhost:8765';
     return `${proto}://${host.replace(/\/$/,'')}/ws`;
@@ -347,6 +362,7 @@ small { color:var(--muted); display:block; margin-top:14px; }
 
   function connect(){
     if(socket){
+      manualClose=true;
       socket.close();
       socket=null;
       setStatus(false);
@@ -396,10 +412,11 @@ small { color:var(--muted); display:block; margin-top:14px; }
   }
 
   async function fallbackRequest(kind){
+    const base=backendBase();
     if(kind==='focus'){
       appendLog('fallback focus via /focus');
       try{
-        const res=await fetch('/focus',{method:'POST',cache:'no-store'});
+        const res=await fetch(base+'/focus',{method:'POST',cache:'no-store'});
         if(res.ok){
           renderFocus(await res.json());
           return;
@@ -416,7 +433,7 @@ small { color:var(--muted); display:block; margin-top:14px; }
     }else if(kind==='scan'){
       appendLog('fallback scan via /scan');
       try{
-        const res=await fetch('/scan',{method:'POST',cache:'no-store'});
+        const res=await fetch(base+'/scan',{method:'POST',cache:'no-store'});
         if(res.ok){
           renderSignals(await res.json());
           return;

@@ -13,7 +13,7 @@ from scripts.util_entropy import (
 )
 
 CODE_ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = Path(os.getenv("DATA_ROOT", "/data"))
+DATA_ROOT = Path(os.getenv("DATA_ROOT", CODE_ROOT))
 FOCUS_PATH = Path(os.getenv("FOCUS_PATH", DATA_ROOT / "cache" / "focus.json"))
 
 LLM_BIN = os.getenv("LLM_BIN", "ollama")
@@ -124,7 +124,12 @@ def compute_focus(
     }
 
     if write:
-        path = FOCUS_PATH if data_root == DATA_ROOT else data_root / "cache" / "focus.json"
+        focus_override = os.getenv("FOCUS_PATH")
+        path = (
+            Path(focus_override)
+            if focus_override and data_root == DATA_ROOT
+            else data_root / "cache" / "focus.json"
+        )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, separators=(",", ":")))
 

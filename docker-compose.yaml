@@ -5,7 +5,8 @@ services:
     ports:
       - "8765:8765"
     volumes:
-      - shared-data:/data
+      - ./signals.json:/data/signals.json
+      - ./cache:/data/cache
     environment:
       DATA_ROOT: /data
       SIGNALS_PATH: /data/signals.json
@@ -16,14 +17,12 @@ services:
     depends_on:
       - backend
     volumes:
-      - shared-data:/data:ro
-      - ./index.html:/data/index.html:ro
+      - ./index.html:/usr/share/caddy/index.html:ro
+      - ./signals.json:/usr/share/caddy/signals.json:ro
+      - ./cache:/usr/share/caddy/cache:ro
     environment:
       CADDY_GLOBAL_OPTIONS: ""
-    command: ["caddy", "file-server", "--root", "/data", "--listen", ":8080"]
+    command: ["caddy", "file-server", "--root", "/usr/share/caddy", "--listen", ":8080"]
     ports:
       - "8080:8080"
     restart: unless-stopped
-
-volumes:
-  shared-data:

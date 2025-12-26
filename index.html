@@ -178,6 +178,43 @@ textarea {
   border:1px solid rgba(122,162,255,0.1);
   box-shadow:inset 10px 10px 18px rgba(0,0,0,0.55), inset -10px -10px 18px rgba(40,54,82,0.25);
 }
+.readme-grid {
+  display:grid;
+  gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+}
+.readme-block {
+  background:var(--bg);
+  border-radius:16px;
+  border:1px solid rgba(122,162,255,0.12);
+  padding:14px 16px;
+  box-shadow:-8px -8px 16px rgba(40,54,82,0.18), 8px 8px 16px rgba(0,0,0,0.5);
+}
+.readme-block h3 {
+  margin:0 0 10px 0;
+  font-size:12px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+.readme-block ul {
+  margin:0;
+  padding-left:18px;
+  font-size:12px;
+  line-height:1.5;
+}
+.readme-block li { margin-bottom:6px; color:var(--fg); }
+.readme-block pre {
+  margin:0;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(122,162,255,0.12);
+  background:var(--bg-alt);
+  color:#9cc4ff;
+  font-size:11px;
+  white-space:pre-wrap;
+  box-shadow:inset 8px 8px 14px rgba(0,0,0,0.55), inset -8px -8px 14px rgba(40,54,82,0.25);
+}
 table {
   width:100%;
   border-collapse:collapse;
@@ -250,6 +287,10 @@ small { color:var(--muted); display:block; margin-top:14px; }
       <h2>Event Log</h2>
       <textarea id="log" readonly></textarea>
     </section>
+    <section id="readme" class="neo-card">
+      <h2>Protocol Brief</h2>
+      <div id="readme-content" class="readme-grid"></div>
+    </section>
   </main>
 </div>
 <script>
@@ -266,9 +307,96 @@ small { color:var(--muted); display:block; margin-top:14px; }
   const logArea=document.getElementById('log');
   const signalRows=document.getElementById('signal-rows');
   const signalsMeta=document.getElementById('signals-meta');
+  const readmeRoot=document.getElementById('readme-content');
 
   let socket=null;
   let reconnecting=false;
+
+  const readmeSections=[
+    {
+      title:'Runtime Surfaces',
+      items:[
+        'backend.py: FastAPI bridge exposing /ws, /scan, /focus, /signals',
+        'index.html: neomorphic console rendering signals and focus state',
+        'scripts/: deterministic analytics stack (harvest_signals, prompt_combinator)',
+        'cache/focus.json + signals.json: persisted artifacts for static fallbacks'
+      ]
+    },
+    {
+      title:'Manifests',
+      items:[
+        'manifests/evm_univ2.json: Uniswap V2 + SushiSwap USDC/WETH pools via eth.llamarpc.com',
+        'manifests/solana_accounts.json: Pyth SOL/USD + Raydium SOL/USDC state via mainnet-beta'
+      ]
+    },
+    {
+      title:'CI / Automation',
+      items:[
+        'workflow: .github/workflows/harvest.yml',
+        'schedule: every 3 minutes for 23h/day + manual dispatch',
+        'outputs: signals.json + cache/focus.json committed for static hosting'
+      ]
+    },
+    {
+      title:'Docker',
+      items:[
+        'docker build -t alpha-console .',
+        'docker run --rm -p 8765:8765 alpha-console',
+        'docker compose up --build (backend + Caddy dashboard)'
+      ]
+    },
+    {
+      title:'Health + API',
+      items:[
+        'GET /health: liveness',
+        'GET /signals: synchronous harvest (no persistence)',
+        'POST /scan {persist:true}: update signals.json',
+        'POST /focus: recompute cache/focus.json',
+        'WS /ws: {type:scan|focus,persist}'
+      ]
+    },
+    {
+      title:'Signal Schema',
+      code:`{
+  "chain":"EVM",
+  "symbol":"WETH/USDC",
+  "best_bid":3438.2260,
+  "best_ask":3435.2318,
+  "sell_venue":"UNISWAP_V2",
+  "buy_venue":"SUSHISWAP",
+  "edge_bps_gross":8.71,
+  "edge_bps":-26.28,
+  "ttl_seconds":30,
+  "ts":1762587233,
+  "assumptions":{"fees_bps":30,"slip_bps":3,"buffer_bps":2}
+}`
+    }
+  ];
+
+  function renderReadme(){
+    readmeSections.forEach(section=>{
+      const block=document.createElement('div');
+      block.className='readme-block';
+      const title=document.createElement('h3');
+      title.textContent=section.title;
+      block.appendChild(title);
+      if(section.items){
+        const list=document.createElement('ul');
+        section.items.forEach(item=>{
+          const li=document.createElement('li');
+          li.textContent=item;
+          list.appendChild(li);
+        });
+        block.appendChild(list);
+      }
+      if(section.code){
+        const pre=document.createElement('pre');
+        pre.textContent=section.code.trim();
+        block.appendChild(pre);
+      }
+      readmeRoot.appendChild(block);
+    });
+  }
 
   function appendLog(message){
     const stamp=new Date().toISOString();
@@ -437,6 +565,7 @@ small { color:var(--muted); display:block; margin-top:14px; }
   focusBtn.addEventListener('click',()=>requestFocus(persistBox.checked));
   scanBtn.addEventListener('click',()=>requestSignals(persistBox.checked));
 
+  renderReadme();
   connect();
 })();
 </script>

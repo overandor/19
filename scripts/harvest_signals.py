@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import time
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
@@ -9,10 +10,11 @@ from scripts.evm_univ2 import fetch_prices_univ2
 from scripts import solana_stub as sol
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_PATH = ROOT / "signals.json"
+DATA_ROOT = Path(os.environ.get("SHARED_DATA_DIR", ROOT))
+OUT_PATH = DATA_ROOT / "signals.json"
 EVM_MANIFEST_PATH = ROOT / "manifests" / "evm_univ2.json"
 SOL_MANIFEST_PATH = ROOT / "manifests" / "solana_accounts.json"
-FOCUS_PATH = ROOT / "cache" / "focus.json"
+FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
 
 SLIP_BPS = 3
 BUFFER_BPS = 2

@@ -26,6 +26,8 @@ jobs:
           python scripts/prompt_combinator.py || echo "LLM rank fallback"
       - name: Harvest signals (read-only)
         run: python scripts/harvest_signals.py
+      - name: Update README dashboard
+        run: python scripts/update_readme.py
       - name: Build container image
         if: github.event_name != 'schedule'
         run: docker build -t alpha-console .
@@ -33,6 +35,6 @@ jobs:
         run: |
           git config user.name "cortex-bot"
           git config user.email "cortex@users.noreply.github.com"
-          git add signals.json cache/focus.json || true
+          git add signals.json cache/focus.json README.md || true
           git commit -m "signals @ $(date -u +%FT%TZ)" || echo "no changes"
           git push || true

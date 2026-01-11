@@ -13,7 +13,8 @@ from scripts.util_entropy import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-FOCUS_PATH = ROOT / "cache" / "focus.json"
+DATA_ROOT = Path(os.environ.get("SHARED_DATA_DIR", ROOT))
+FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
 
 LLM_BIN = os.getenv("LLM_BIN", "ollama")
 LLM_MODEL = os.getenv("LLM_MODEL", "codellama:13b")

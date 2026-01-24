@@ -5,6 +5,12 @@ services:
     ports:
       - "8765:8765"
     volumes:
+      - ./signals.json:/data/signals.json
+      - ./cache:/data/cache
+    environment:
+      DATA_ROOT: /data
+      SIGNALS_PATH: /data/signals.json
+      FOCUS_PATH: /data/cache/focus.json
       - ./signals.json:/app/signals.json
       - ./cache:/app/cache
     restart: unless-stopped

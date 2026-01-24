@@ -1,5 +1,6 @@
 import ccxt
 import time
+import json
 import threading
 import numpy as np
 import functools
@@ -472,9 +473,27 @@ def setup_grid_for_symbol(ex, symbol, position_size_usd):
     except Exception as e:
         console.print(f"[red]Error setting up grid for {symbol}: {e}")
 
+def update_telemetry():
+    """Write bot status to cache/beast_status.json for dashboard integration"""
+    try:
+        status = {
+            "ts": int(time.time()),
+            "total_profit": total_profit,
+            "total_trades": total_trades,
+            "profit_rate": profit_rate,
+            "active_symbols": list(active_grids.keys()),
+            "dry_run": DRY_RUN
+        }
+        os.makedirs("cache", exist_ok=True)
+        with open("cache/beast_status.json", "w") as f:
+            json.dump(status, f)
+    except Exception as e:
+        console.print(f"[yellow]Telemetry update failed: {e}")
+
 def display_dashboard(ex):
     """Display live dashboard with grid performance"""
     while True:
+        update_telemetry()
         if not check_account_health(ex):
             emergency_liquidation(ex)
             break
@@ -554,6 +573,7 @@ def main():
 
         # Initialize start time
         start_time = time.time()
+        update_telemetry()
 
         # Find best symbols
         symbols = get_best_symbols(ex, MAX_SYMBOLS)

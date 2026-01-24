@@ -15,6 +15,7 @@ OUT_PATH = DATA_ROOT / "signals.json"
 EVM_MANIFEST_PATH = ROOT / "manifests" / "evm_univ2.json"
 SOL_MANIFEST_PATH = ROOT / "manifests" / "solana_accounts.json"
 FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
+BEAST_STATUS_PATH = DATA_ROOT / "cache" / "beast_status.json"
 
 SLIP_BPS = 3
 BUFFER_BPS = 2
@@ -111,6 +112,27 @@ def generate_signals(
             sol.fetch_pyth_prices(sol_manifest)
         except Exception:
             pass
+
+    # Include Beast Bot status if available
+    beast_status = _load_json(BEAST_STATUS_PATH, None)
+    if beast_status:
+        signals.append({
+            "chain": "GATE_IO",
+            "symbol": f"BEAST:{','.join(beast_status.get('active_symbols', []))}",
+            "best_bid": 0,
+            "best_ask": 0,
+            "sell_venue": "GRID",
+            "buy_venue": "LIVE",
+            "edge_bps_gross": beast_status.get("profit_rate", 0) * 100, # Scaled for visibility
+            "edge_bps": beast_status.get("profit_rate", 0),
+            "ttl_seconds": int(time.time() - beast_status.get("ts", 0)),
+            "ts": beast_status.get("ts", int(time.time())),
+            "assumptions": {
+                "profit_total": beast_status.get("total_profit", 0),
+                "trades": beast_status.get("total_trades", 0),
+                "mode": "DRY" if beast_status.get("dry_run") else "LIVE"
+            }
+        })
 
     payload = {
         "generated_at": int(time.time()),

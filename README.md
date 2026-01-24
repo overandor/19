@@ -1,5 +1,4 @@
 # Autonomous Alpha Console
-
 Live signal table below updates every 3 minutes via CI (no keys, no input, no manual wiring).
 
 <!-- SIGNALS:START -->

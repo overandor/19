@@ -11,6 +11,8 @@ services:
       DATA_ROOT: /data
       SIGNALS_PATH: /data/signals.json
       FOCUS_PATH: /data/cache/focus.json
+      - ./signals.json:/app/signals.json
+      - ./cache:/app/cache
     restart: unless-stopped
   dashboard:
     image: caddy:2.7.6-alpine

@@ -4,6 +4,9 @@ services:
     build: .
     ports:
       - "8765:8765"
+    volumes:
+      - ./signals.json:/app/signals.json
+      - ./cache:/app/cache
     restart: unless-stopped
   dashboard:
     image: caddy:2.7.6-alpine

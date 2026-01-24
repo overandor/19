@@ -1,6 +1,1 @@
-[
-  "find stale oracles",
-  "mispriced LPs",
-  "curve inversion",
-  "high LVR pools"
-]
+["lag", "TWAP", "LVR", "oracle", "inversion", "misaligned"]

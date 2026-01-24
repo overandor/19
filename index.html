@@ -25,12 +25,28 @@
     text-align: center;
     padding: 2rem 1rem 1rem;
   }
-  h1 {
-    font-weight: 800;
-    background: linear-gradient(90deg,#16a34a,#86efac);
-    -webkit-background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 8px rgba(134,239,172,0.6);
+
+  function backendBase(){
+    const params=new URLSearchParams(window.location.search);
+    const api=params.get('api');
+    if(api){
+      try{ return new URL(api).toString().replace(/\/$/,''); }catch(_){ /* ignore */ }
+    }
+    const host=window.location.hostname||'localhost';
+    const proto=window.location.protocol==='https:'?'https:':'http:';
+    return `${proto}//${host}:8765`;
+  }
+
+  function inferWsUrl(){
+    const manual=wsInput.value.trim();
+    if(manual) return manual;
+    const params=new URLSearchParams(window.location.search);
+    const param=params.get('ws');
+    if(param) return param;
+    const base=new URL(backendBase());
+    base.protocol=base.protocol==='https:'?'wss:':'ws:';
+    base.pathname='/ws';
+    return base.toString();
   }
   .container {
     width: 90%;
@@ -58,9 +74,43 @@
     line-height: 1.4;
     animation: fadeIn 0.3s ease;
   }
-  .user {
-    align-self: flex-end;
-    background: linear-gradient(145deg,#a7f3d0,#6ee7b7);
+
+  function connect(){
+    if(socket){
+      manualClose=true;
+      socket.close();
+      socket=null;
+      setStatus(false);
+      return;
+    }
+    const url=inferWsUrl();
+    appendLog(`connecting ${url}`);
+    socket=new WebSocket(url);
+    socket.addEventListener('open',()=>{
+      setStatus(true);
+      appendLog('websocket open');
+      if(!reconnecting){
+        requestFocus(false);
+        requestSignals(false);
+      }
+      reconnecting=false;
+    });
+    socket.addEventListener('close',()=>{
+      appendLog('websocket closed');
+      setStatus(false);
+      if(socket){
+        socket=null;
+        if(manualClose){
+          manualClose=false;
+          return;
+        }
+        setTimeout(()=>{reconnecting=true;connect();},2500);
+      }
+    });
+    socket.addEventListener('error',err=>{
+      appendLog(`websocket error ${err.message||err}`);
+    });
+    socket.addEventListener('message',handleMessage);
   }
   .bot {
     align-self: flex-start;
@@ -88,19 +138,44 @@
     box-shadow: inset 3px 3px 6px #cdded3, inset -3px -3px 6px #ffffff;
     margin-right: 1rem;
   }
-  button {
-    background: linear-gradient(145deg,#4ade80,#22c55e);
-    color: white;
-    border: none;
-    border-radius: 15px;
-    padding: 0.75rem 1.25rem;
-    box-shadow: 5px 5px 10px #cdded3, -5px -5px 10px #ffffff;
-    transition: transform 0.2s ease;
-  }
-  button:hover { transform: translateY(-2px); }
-  .upload {
-    margin-left: 0.5rem;
-    font-size: 0.8rem;
+
+  async function fallbackRequest(kind){
+    const base=backendBase();
+    if(kind==='focus'){
+      appendLog('fallback focus via /focus');
+      try{
+        const res=await fetch(base+'/focus',{method:'POST',cache:'no-store'});
+        if(res.ok){
+          renderFocus(await res.json());
+          return;
+        }
+      }catch(_){ }
+      try{
+        const res=await fetch('cache/focus.json?cb='+Date.now());
+        if(res.ok){
+          renderFocus(await res.json());
+        }
+      }catch(err){
+        appendLog(`focus fallback failed ${err}`);
+      }
+    }else if(kind==='scan'){
+      appendLog('fallback scan via /scan');
+      try{
+        const res=await fetch(base+'/scan',{method:'POST',cache:'no-store'});
+        if(res.ok){
+          renderSignals(await res.json());
+          return;
+        }
+      }catch(_){ }
+      try{
+        const res=await fetch('signals.json?cb='+Date.now());
+        if(res.ok){
+          renderSignals(await res.json());
+        }
+      }catch(err){
+        appendLog(`scan fallback failed ${err}`);
+      }
+    }
   }
   @keyframes fadeIn {
     from {opacity:0; transform:translateY(10px);}

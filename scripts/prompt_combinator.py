@@ -12,9 +12,9 @@ from scripts.util_entropy import (
     latest_blockhash_solana,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = Path(os.environ.get("SHARED_DATA_DIR", ROOT))
-FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
+CODE_ROOT = Path(__file__).resolve().parents[1]
+DATA_ROOT = Path(os.getenv("DATA_ROOT", CODE_ROOT))
+FOCUS_PATH = Path(os.getenv("FOCUS_PATH", DATA_ROOT / "cache" / "focus.json"))
 
 LLM_BIN = os.getenv("LLM_BIN", "ollama")
 LLM_MODEL = os.getenv("LLM_MODEL", "codellama:13b")
@@ -97,9 +97,11 @@ def llm_rank(candidates: Iterable[str], entropy: str, limit: int = DEFAULT_LIMIT
     return candidates[:limit], raw, "fallback"
 
 
-def compute_focus(write: bool = True, root: Path = ROOT) -> Dict[str, object]:
-    evm_manifest = _load_json(root / "manifests" / "evm_univ2.json", {"pairs": []})
-    sol_manifest = _load_json(root / "manifests" / "solana_accounts.json", {})
+def compute_focus(
+    write: bool = True, data_root: Path = DATA_ROOT, code_root: Path = CODE_ROOT
+) -> Dict[str, object]:
+    evm_manifest = _load_json(code_root / "manifests" / "evm_univ2.json", {"pairs": []})
+    sol_manifest = _load_json(code_root / "manifests" / "solana_accounts.json", {})
 
     axes = _build_axes(evm_manifest, sol_manifest)
     entropy = entropy_mix(
@@ -122,7 +124,12 @@ def compute_focus(write: bool = True, root: Path = ROOT) -> Dict[str, object]:
     }
 
     if write:
-        path = FOCUS_PATH if root == ROOT else root / "cache" / "focus.json"
+        focus_override = os.getenv("FOCUS_PATH")
+        path = (
+            Path(focus_override)
+            if focus_override and data_root == DATA_ROOT
+            else data_root / "cache" / "focus.json"
+        )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, separators=(",", ":")))
 

@@ -16,6 +16,12 @@ EVM_MANIFEST_PATH = ROOT / "manifests" / "evm_univ2.json"
 SOL_MANIFEST_PATH = ROOT / "manifests" / "solana_accounts.json"
 FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
 BEAST_STATUS_PATH = DATA_ROOT / "cache" / "beast_status.json"
+CODE_ROOT = Path(__file__).resolve().parents[1]
+DATA_ROOT = Path(os.getenv("DATA_ROOT", CODE_ROOT))
+OUT_PATH = Path(os.getenv("SIGNALS_PATH", DATA_ROOT / "signals.json"))
+EVM_MANIFEST_PATH = CODE_ROOT / "manifests" / "evm_univ2.json"
+SOL_MANIFEST_PATH = CODE_ROOT / "manifests" / "solana_accounts.json"
+FOCUS_PATH = Path(os.getenv("FOCUS_PATH", DATA_ROOT / "cache" / "focus.json"))
 
 SLIP_BPS = 3
 BUFFER_BPS = 2

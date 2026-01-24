@@ -269,6 +269,7 @@ small { color:var(--muted); display:block; margin-top:14px; }
 
   let socket=null;
   let reconnecting=false;
+  let manualClose=false;
 
   function appendLog(message){
     const stamp=new Date().toISOString();
@@ -304,9 +305,6 @@ small { color:var(--muted); display:block; margin-top:14px; }
     base.protocol=base.protocol==='https:'?'wss:':'ws:';
     base.pathname='/ws';
     return base.toString();
-    const proto=window.location.protocol==='https:'?'wss':'ws';
-    const host=window.location.host||'localhost:8765';
-    return `${proto}://${host.replace(/\/$/,'')}/ws`;
   }
 
   function renderFocus(payload){
@@ -385,6 +383,10 @@ small { color:var(--muted); display:block; margin-top:14px; }
       setStatus(false);
       if(socket){
         socket=null;
+        if(manualClose){
+          manualClose=false;
+          return;
+        }
         setTimeout(()=>{reconnecting=true;connect();},2500);
       }
     });

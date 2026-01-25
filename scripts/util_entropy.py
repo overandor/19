@@ -5,15 +5,27 @@ def sha256_hex(s: str) -> str:
     return hashlib.sha256(s.encode()).hexdigest()
 
 def latest_blockhash_solana(rpc_url: str) -> str:
+    if not rpc_url:
+        return ""
     try:
-        r = requests.post(rpc_url, json={"jsonrpc":"2.0","id":1,"method":"getLatestBlockhash"})
+        r = requests.post(
+            rpc_url,
+            json={"jsonrpc":"2.0","id":1,"method":"getLatestBlockhash"},
+            timeout=8,
+        )
         return (r.json().get("result") or {}).get("value", {}).get("blockhash", "")
     except Exception:
         return ""
 
 def latest_block_evm(rpc_url: str) -> str:
+    if not rpc_url:
+        return ""
     try:
-        r = requests.post(rpc_url, json={"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]})
+        r = requests.post(
+            rpc_url,
+            json={"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]},
+            timeout=8,
+        )
         return r.json().get("result","")
     except Exception:
         return ""

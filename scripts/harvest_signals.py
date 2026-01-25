@@ -16,12 +16,7 @@ EVM_MANIFEST_PATH = ROOT / "manifests" / "evm_univ2.json"
 SOL_MANIFEST_PATH = ROOT / "manifests" / "solana_accounts.json"
 FOCUS_PATH = DATA_ROOT / "cache" / "focus.json"
 BEAST_STATUS_PATH = DATA_ROOT / "cache" / "beast_status.json"
-CODE_ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = Path(os.getenv("DATA_ROOT", CODE_ROOT))
-OUT_PATH = Path(os.getenv("SIGNALS_PATH", DATA_ROOT / "signals.json"))
-EVM_MANIFEST_PATH = CODE_ROOT / "manifests" / "evm_univ2.json"
-SOL_MANIFEST_PATH = CODE_ROOT / "manifests" / "solana_accounts.json"
-FOCUS_PATH = Path(os.getenv("FOCUS_PATH", DATA_ROOT / "cache" / "focus.json"))
+DRIFT_STATUS_PATH = DATA_ROOT / "cache" / "drift_status.json"
 
 SLIP_BPS = 3
 BUFFER_BPS = 2
@@ -118,6 +113,27 @@ def generate_signals(
             sol.fetch_pyth_prices(sol_manifest)
         except Exception:
             pass
+
+    # Include Drift Bot status if available
+    drift_status = _load_json(DRIFT_STATUS_PATH, None)
+    if drift_status:
+        signals.append({
+            "chain": "SOLANA",
+            "symbol": "DRIFT:SOL-PERP",
+            "best_bid": 0,
+            "best_ask": 0,
+            "sell_venue": "DRIFT",
+            "buy_venue": "DCA",
+            "edge_bps_gross": drift_status.get("profit_rate", 0) * 100,
+            "edge_bps": drift_status.get("profit_rate", 0),
+            "ttl_seconds": int(time.time() - drift_status.get("ts", 0)),
+            "ts": drift_status.get("ts", int(time.time())),
+            "assumptions": {
+                "profit_total": drift_status.get("total_profit", 0),
+                "trades": drift_status.get("total_trades", 0),
+                "mode": "DRY" if drift_status.get("dry_run") else "LIVE"
+            }
+        })
 
     # Include Beast Bot status if available
     beast_status = _load_json(BEAST_STATUS_PATH, None)

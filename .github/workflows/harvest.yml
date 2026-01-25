@@ -2,16 +2,19 @@ name: harvest
 on:
   schedule:
     - cron: '*/3 0-22 * * *'
-  workflow_dispatch:
+  push:
+    branches: [ main ]
 permissions:
   contents: write
+concurrency:
+  group: harvest
+  cancel-in-progress: true
 jobs:
-  run:
+  harvest:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
-      - name: Python
         with: { fetch-depth: 0 }
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,10 +37,6 @@ jobs:
       - name: Commit artifacts
         run: |
           git config user.name "cortex-bot"
-          git config user.email "cortex@users.noreply.github.com"
-          git add signals.json cache/focus.json README.md || true
-          git commit -m "signals @ $(date -u +%FT%TZ)" || echo "no changes"
-          git push || true
           git config user.email "cortex-bot@users.noreply.github.com"
           git add signals.json SHASUMS256.txt .last_harvest_utc
           git commit -m "signals: $(date -u +%FT%TZ)" || echo "no changes"

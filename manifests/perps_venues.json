@@ -1,0 +1,75 @@
+{
+  "max_network_fee_usd": 0.10,
+  "venues": [
+    {
+      "venue": "DRIFT",
+      "network": "solana",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.002,
+      "notes": "solana v0 tx"
+    },
+    {
+      "venue": "ZETA",
+      "network": "solana",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.002,
+      "notes": "solana v0 tx"
+    },
+    {
+      "venue": "MANGO",
+      "network": "solana",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.003,
+      "notes": "solana v0 tx"
+    },
+    {
+      "venue": "SYNTHETIX_PERPS",
+      "network": "base",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.020,
+      "notes": "op-stack l2"
+    },
+    {
+      "venue": "KWENTA_PERPS",
+      "network": "base",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.020,
+      "notes": "snx v3 frontend route"
+    },
+    {
+      "venue": "BASEDAPP_PERPS",
+      "network": "base",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.020,
+      "notes": "snx v3 integrator"
+    },
+    {
+      "venue": "GMX_PERPS",
+      "network": "arbitrum",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.080,
+      "notes": "arb one median gas"
+    },
+    {
+      "venue": "VERTEX_PERPS",
+      "network": "arbitrum",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.080,
+      "notes": "arb one median gas"
+    },
+    {
+      "venue": "HYPERLIQUID_PERPS",
+      "network": "hyperliquid",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.000,
+      "notes": "appchain internal matching"
+    },
+    {
+      "venue": "LEVEL_PERPS",
+      "network": "bsc",
+      "instrument_type": "perps",
+      "estimated_network_fee_usd": 0.050,
+      "notes": "bsc median gas"
+    }
+  ]
+}

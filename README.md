@@ -69,7 +69,11 @@ Open `http://localhost:8080/index.html` and connect (defaults to `ws://localhost
       "perp_taker_bps_roundtrip": 8,
       "funding_rate_bps_8h": 1.2,
       "borrow_apr_bps": 450,
-      "expected_hold_hours": 2
+      "expected_hold_hours": 2,
+      "max_network_fee_usd": 0.10,
+      "preferred_networks": ["base", "solana", "arbitrum", "hyperliquid", "bsc"],
+      "min_venues": 4,
+      "max_venues": 14
     },
     "eligible_venues": [
       {"venue": "DRIFT", "network": "solana", "estimated_network_fee_usd": 0.002},
@@ -83,6 +87,11 @@ Open `http://localhost:8080/index.html` and connect (defaults to `ws://localhost
       {"venue": "HYPERLIQUID_PERPS", "network": "hyperliquid", "estimated_network_fee_usd": 0.000},
       {"venue": "LEVEL_PERPS", "network": "bsc", "estimated_network_fee_usd": 0.050}
     ],
+    "eligible_venues_meta": {
+      "selected_count": 10,
+      "required_min_count": 4,
+      "is_min_satisfied": true
+    },
     "result": {
       "spot_notional_usd": 10000.0,
       "base_units": 2.9109,
@@ -102,6 +111,16 @@ Open `http://localhost:8080/index.html` and connect (defaults to `ws://localhost
 }
 ```
 Gross column is the raw bid/ask spread; net column subtracts fees, slip, and buffer. `perps_hedge.result.net_hedged_edge_bps` adds carry-adjusted economics for DEX spot + perp hedge routing, while `perps_hedge.eligible_venues` constrains perp venues to `estimated_network_fee_usd <= max_network_fee_usd` (default $0.10).
+
+## Perp venue attachment policy
+- Selection objective: expose deterministic hedgeable perp routes with strict low-fee admission and bounded fan-out.
+- Admission constraint: include venue iff `estimated_network_fee_usd <= max_network_fee_usd` from hedge config.
+- Cardinality constraints: clamp to `[4, 14]` venues using `min_venues`/`max_venues`; emit runtime satisfaction flag in payload.
+- Ordering constraints (stable): `preferred_networks` rank, then `estimated_network_fee_usd`, then lexical `venue` for deterministic replay.
+- Payload fields:
+  - `perps_hedge.config` includes venue policy inputs (`max_network_fee_usd`, `preferred_networks`, `min_venues`, `max_venues`).
+  - `perps_hedge.eligible_venues` contains selected venue rows for execution planner input.
+  - `perps_hedge.eligible_venues_meta` publishes `selected_count`, `required_min_count`, `is_min_satisfied` for guardrail checks.
 
 ## Health
 - `GET /health` — liveness probe.

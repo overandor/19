@@ -4,7 +4,11 @@
     "perp_taker_bps_roundtrip": 8,
     "funding_rate_bps_8h": 1.5,
     "borrow_apr_bps": 500,
-    "expected_hold_hours": 4
+    "expected_hold_hours": 4,
+    "max_network_fee_usd": 0.10,
+    "preferred_networks": ["base", "solana", "arbitrum", "hyperliquid", "bsc"],
+    "min_venues": 4,
+    "max_venues": 14
   },
   "symbols": {
     "WETH/USDC": {
@@ -12,8 +16,12 @@
       "perp_taker_bps_roundtrip": 8,
       "funding_rate_bps_8h": 1.2,
       "borrow_apr_bps": 450,
-      "expected_hold_hours": 2
+      "expected_hold_hours": 2,
+      "max_network_fee_usd": 0.10,
+      "preferred_networks": ["base", "solana", "arbitrum", "hyperliquid", "bsc"],
+      "min_venues": 4,
+      "max_venues": 14
     }
   },
-  "max_network_fee_usd": 0.1
+  "max_network_fee_usd": 0.10
 }

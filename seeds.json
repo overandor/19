@@ -1,1 +1,1 @@
-["inversion", "decay", "TWAP", "lag", "LVR", "misaligned"]
+["oracle", "misaligned", "slippage", "TWAP", "inversion", "lag"]

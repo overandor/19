@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ImprovementProposal",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "created_at",
+    "source_feedback",
+    "category",
+    "summary",
+    "safety_review",
+    "planned_changes",
+    "validation_plan",
+    "rollback_plan"
+  ],
+  "properties": {
+    "proposal_id": { "type": "string" },
+    "created_at": { "type": "string" },
+    "source_feedback": {
+      "type": "object",
+      "required": ["event_type", "url", "author"],
+      "properties": {
+        "event_type": { "type": "string" },
+        "url": { "type": "string" },
+        "author": { "type": "string" },
+        "body": { "type": "string" }
+      }
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "documentation",
+        "evaluation",
+        "feature_extraction",
+        "reporting",
+        "taxonomy",
+        "testing"
+      ]
+    },
+    "summary": { "type": "string" },
+    "planned_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "change_type", "rationale"],
+        "properties": {
+          "path": { "type": "string" },
+          "change_type": { "type": "string" },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "validation_plan": { "type": "array", "items": { "type": "string" } },
+    "simulation_plan": { "type": "array", "items": { "type": "string" } },
+    "safety_review": {
+      "type": "object",
+      "required": ["contains_live_trading", "requires_human_review"],
+      "properties": {
+        "contains_live_trading": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "risk_notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rollback_plan": { "type": "string" }
+  }
+}

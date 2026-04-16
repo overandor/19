@@ -1,0 +1,31 @@
+{
+  "signal_id": "sig_failed_breakout_persistence_v1",
+  "name": "Failed Breakout Persistence Cluster",
+  "family": "failed_breakout_signatures",
+  "status": "under_test",
+  "description": "Hypothesis that repeated failed breakouts plus volatility contraction may predict short-horizon mean reversion in selected regimes.",
+  "hypothesized_mechanism": "Stop-driven directional attempts exhaust order flow and revert when participation decays.",
+  "required_features": [
+    "local_high_break_attempt_count",
+    "post-breakout_volume_decay",
+    "microstructure_imbalance",
+    "realized_volatility_compression"
+  ],
+  "expected_context": [
+    "range-bound regimes",
+    "low-news intervals"
+  ],
+  "expected_failure_modes": [
+    "macro headline shocks",
+    "single-venue data outages",
+    "structural trend regime transitions"
+  ],
+  "evidence_supporting": [
+    "small in-sample uplift in two windows"
+  ],
+  "evidence_missing": [
+    "out-of-regime stability",
+    "cross-asset reproducibility"
+  ],
+  "confidence_in_existence": 0.31
+}

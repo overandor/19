@@ -1,0 +1,32 @@
+name: draft-pr-generator
+
+on:
+  workflow_run:
+    workflows: [feedback-ingest]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  draft_pr:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create branch for proposal
+        run: |
+          branch="auto/proposal-$(date -u +%Y%m%d%H%M%S)-research"
+          git checkout -b "$branch"
+          git push -u origin "$branch"
+      - name: Open draft PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --draft \
+            --title "chore: automated research improvement proposal" \
+            --body "Machine-generated proposal. Human approval required." \
+            --base main || true

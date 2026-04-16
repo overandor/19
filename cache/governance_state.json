@@ -1,0 +1,21 @@
+{
+  "generated_at": 1776319695,
+  "mode": "self-governing",
+  "controller": "llm-governor",
+  "llm_used": false,
+  "objective": "increase_scan_diversity",
+  "metrics": {
+    "signal_count": 2,
+    "top_edge_bps": 0.0,
+    "focus_target_count": 8,
+    "focus_source": "fallback",
+    "beast_status": "unknown"
+  },
+  "allowed_actions": [
+    "update_signals",
+    "refresh_focus",
+    "update_readme",
+    "publish_pages",
+    "open_issue_on_failure"
+  ]
+}

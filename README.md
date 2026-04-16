@@ -28,6 +28,7 @@ It is designed as a governed software system with GitHub Actions-assisted self-i
 - Safety policies: `safety_policies/`
 - Improvement proposals: `improvement_proposals/`
 - Candidate signal registry: `candidate_signal_registry/`
+- Research alerts: `docs/RESEARCH_ALERTS.md`
 
 ## Governance Model
 

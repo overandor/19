@@ -1,0 +1,54 @@
+name: governance
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: governance
+  cancel-in-progress: true
+jobs:
+  govern:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Recompute core artifacts
+        run: |
+          python scripts/prompt_combinator.py || echo "focus fallback"
+          python scripts/harvest_signals.py
+          python scripts/update_readme.py
+      - name: Run LLM governance loop
+        env:
+          LLM_BIN: ollama
+          LLM_MODEL: llama3.1
+        run: python scripts/llm_governor.py
+      - name: Commit governance outputs
+        run: |
+          git config user.name "cortex-governor"
+          git config user.email "cortex-governor@users.noreply.github.com"
+          git add cache/governance_state.json cache/focus.json signals.json README.md
+          git commit -m "governance: $(date -u +%FT%TZ)" || echo "no changes"
+          git push
+
+  alert-on-fail:
+    needs: govern
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Governance loop failed',
+              body: 'The self-governing workflow failed. Review governance.yml logs.'
+            })

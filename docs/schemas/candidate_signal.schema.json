@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CandidateSignal",
+  "type": "object",
+  "required": [
+    "candidate_id",
+    "signal_family_name",
+    "status",
+    "research_only",
+    "hypothesized_mechanism",
+    "required_features",
+    "expected_market_context",
+    "expected_failure_modes",
+    "confidence_in_existence",
+    "supporting_evidence",
+    "missing_evidence"
+  ],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "signal_family_name": {"type": "string"},
+    "human_description": {"type": "string"},
+    "status": {"type": "string", "enum": ["imagined", "weakly_supported", "under_test", "promising", "unstable", "rejected", "research_candidate_only"]},
+    "research_only": {"type": "boolean", "const": true},
+    "hypothesized_mechanism": {"type": "string"},
+    "required_features": {"type": "array", "items": {"type": "string"}},
+    "expected_market_context": {"type": "array", "items": {"type": "string"}},
+    "expected_failure_modes": {"type": "array", "items": {"type": "string"}},
+    "confidence_in_existence": {"type": "number", "minimum": 0, "maximum": 1},
+    "supporting_evidence": {"type": "array", "items": {"type": "string"}},
+    "missing_evidence": {"type": "array", "items": {"type": "string"}},
+    "noise_assessment": {"type": "string"},
+    "last_updated_utc": {"type": "string", "format": "date-time"}
+  }
+}

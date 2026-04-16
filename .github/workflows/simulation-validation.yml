@@ -1,0 +1,34 @@
+name: simulation-validation
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate-research-change:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run schema checks
+        run: |
+          python -m json.tool docs/schemas/improvement_proposal.schema.json >/dev/null
+          python -m json.tool docs/schemas/candidate_signal.schema.json >/dev/null
+          python -m json.tool docs/schemas/evidence_scorecard.schema.json >/dev/null
+      - name: Run simulation harness placeholder
+        run: |
+          mkdir -p simulation_runs
+          cat > simulation_runs/latest_validation.json <<JSON
+          {
+            "run_id": "${GITHUB_RUN_ID}",
+            "status": "pass",
+            "notes": "Placeholder: replace with historical walk-forward and falsification tests."
+          }
+          JSON
+      - name: Upload simulation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-validation
+          path: simulation_runs/latest_validation.json

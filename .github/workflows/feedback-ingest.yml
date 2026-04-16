@@ -1,0 +1,45 @@
+name: feedback-ingest
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+  issue_comment:
+    types: [created, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+  workflow_dispatch:
+
+jobs:
+  classify-feedback:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build feedback event payload
+        run: |
+          mkdir -p feedback_ingest/raw
+          echo '${{ toJson(github.event) }}' > feedback_ingest/raw/event.json
+      - name: Classify feedback into improvement themes
+        run: |
+          python - <<'PY'
+          import json, pathlib, datetime
+          p = pathlib.Path('feedback_ingest/raw/event.json')
+          e = json.loads(p.read_text())
+          out = {
+            "ingested_utc": datetime.datetime.utcnow().isoformat() + "Z",
+            "event_name": e.get("action", "unknown"),
+            "channel": "issue_or_pr_comment",
+            "theme_candidates": ["documentation", "evaluation_logic", "research_taxonomy"],
+            "unsafe": False,
+            "notes": "Skeleton classifier output; replace with policy-aware model."
+          }
+          pathlib.Path('feedback_ingest/classified_feedback.json').write_text(json.dumps(out, indent=2))
+          PY
+      - name: Upload classification artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: classified-feedback
+          path: feedback_ingest/classified_feedback.json

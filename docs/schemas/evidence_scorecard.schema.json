@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceScorecard",
+  "type": "object",
+  "required": ["candidate_id", "window", "scores", "decision"],
+  "properties": {
+    "candidate_id": {"type": "string"},
+    "window": {"type": "string"},
+    "scores": {
+      "type": "object",
+      "required": ["evidence_strength", "regime_robustness", "calibration_quality", "mechanism_plausibility", "noise_risk"],
+      "properties": {
+        "evidence_strength": {"type": "number", "minimum": 0, "maximum": 5},
+        "regime_robustness": {"type": "number", "minimum": 0, "maximum": 5},
+        "calibration_quality": {"type": "number", "minimum": 0, "maximum": 5},
+        "mechanism_plausibility": {"type": "number", "minimum": 0, "maximum": 5},
+        "noise_risk": {"type": "number", "minimum": 0, "maximum": 5}
+      }
+    },
+    "decision": {"type": "string", "enum": ["promote", "hold_under_test", "demote", "reject"]},
+    "decision_reason": {"type": "string"}
+  }
+}

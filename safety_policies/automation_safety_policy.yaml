@@ -1,0 +1,40 @@
+policy_version: 1.0.0
+scope: repository_automation
+mission: research_only_non_executable_signal_discovery
+
+hard_blocks:
+  - id: no_live_trade_instructions
+    description: Block any generated output containing executable trade entries/orders.
+  - id: no_automerge
+    description: Automated workflows must not merge pull requests.
+  - id: no_direct_main_push
+    description: Bot actors cannot push directly to main.
+  - id: no_safety_gate_removal
+    description: Changes that weaken safety controls are rejected by default.
+
+required_controls:
+  - branch_based_changes
+  - draft_pr_only_for_automation
+  - test_and_simulation_evidence
+  - human_approval_before_merge
+  - rollback_notes_required
+
+unsafe_suggestion_filters:
+  - live_execution
+  - broker_api_enablement
+  - guaranteed_profit_language
+  - hidden_or_unlogged_model_changes
+
+audit:
+  retention: append_only
+  required_artifacts:
+    - improvement_proposals
+    - change_summaries
+    - simulation_runs
+    - evaluation_reports
+
+approval:
+  required_humans: 1
+  required_role_examples:
+    - research_lead
+    - risk_reviewer

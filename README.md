@@ -1,44 +1,44 @@
-# Supervised AI Market Research Lab
+# Speculative Signal Discovery Lab (Governed, Research-Only)
 
-This repository is redesigned as a **governed market intelligence and experimentation system**.
+This repository is an institutional research environment for discovering and evaluating **hypothetical, currently non-existent signal classes**.
 
-It continuously studies market and feature data, generates structured hypotheses, tracks realized outcomes, and proposes process improvements under strict human supervision.
+It is designed as a governed software system with GitHub Actions-assisted self-improvement under strict human oversight.
 
-## Safety & Governance Guardrails
+## Non-Negotiable Safety Constraints
 
-This system is intentionally **not** an autonomous trading agent.
+- No live trading instructions.
+- No real-time trade calls or entries.
+- No autonomous strategy deployment.
+- No auto-merge of machine-generated changes.
+- No safety gate weakening through automation.
 
-- No live order placement.
-- No auto-execution of strategies.
-- No self-deployment of strategy/prompt/model changes.
-- No activation of new logic without explicit human approval.
+## What This System Does
 
-## Core Workflow
+- explores candidate signal families from market structure and contextual data,
+- records hypotheses and evidence with explicit uncertainty,
+- runs simulation and falsification tests,
+- rejects weak/noisy candidates aggressively,
+- converts feedback into draft improvement PRs via controlled workflows.
 
-1. Observe market + feature data (`ingestion/`, `feature_engine/`).
-2. Generate hypotheses (`hypothesis_engine/`).
-3. Persist hypotheses + metadata (`signal_history/`, `memory_store/`).
-4. Evaluate outcomes and calibration (`evaluation_engine/`, `evaluations/`).
-5. Detect repeated failure modes (`failure_mode_reports/`).
-6. Propose controlled improvements (`experiments/`, `approvals/`).
-7. Require human sign-off before activation (`approval_gate` process in `docs/REDESIGN_PLAN.md`).
+## Key Design Surfaces
 
-## Repository as Memory
+- Redesign blueprint: `docs/RESEARCH_LAB_REDESIGN.md`
+- Schemas: `docs/schemas/`
+- Automation workflows: `.github/workflows/`
+- Safety policies: `safety_policies/`
+- Improvement proposals: `improvement_proposals/`
+- Candidate signal registry: `candidate_signal_registry/`
 
-The repository is a first-class memory surface with immutable-style append logs and versioned artifacts:
+## Governance Model
 
-- `signal_history/`
-- `evaluations/`
-- `experiments/`
-- `prompts/`
-- `model_versions/`
-- `weekly_reviews/`
-- `failure_mode_reports/`
-- `dashboards/`
+All meaningful repository evolution follows:
 
-## Where to Start
+1. feedback ingest,
+2. proposal generation,
+3. branch-based change,
+4. test + simulation validation,
+5. draft PR generation,
+6. human review and approval,
+7. merge with rollback traceability.
 
-- Read the complete redesign blueprint: `docs/REDESIGN_PLAN.md`
-- Review canonical schemas + logging envelopes: `docs/DATA_SCHEMAS.md`
-- Use `approvals/approval_queue.jsonl` for pending changes and `approvals/approval_decisions.jsonl` for outcomes.
-
+This repository should feel like a governed discovery engine, not a live trading bot.

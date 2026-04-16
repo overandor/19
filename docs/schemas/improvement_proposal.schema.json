@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ImprovementProposal",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "created_utc",
+    "source_feedback",
+    "interpretation",
+    "category",
+    "affected_files",
+    "risk_notes",
+    "rollback_notes",
+    "status"
+  ],
+  "properties": {
+    "proposal_id": {"type": "string"},
+    "created_utc": {"type": "string", "format": "date-time"},
+    "source_feedback": {
+      "type": "object",
+      "required": ["channel", "reference", "author"],
+      "properties": {
+        "channel": {"type": "string", "enum": ["issue", "issue_comment", "pr_comment", "evaluation_report", "manual"]},
+        "reference": {"type": "string"},
+        "author": {"type": "string"}
+      }
+    },
+    "interpretation": {"type": "string"},
+    "category": {"type": "string", "enum": ["documentation", "evaluation_logic", "reporting", "simulation_config", "feature_extraction", "research_taxonomy", "dashboard", "prompt"]},
+    "affected_files": {"type": "array", "items": {"type": "string"}},
+    "diff_summary": {"type": "string"},
+    "test_results": {"type": "array", "items": {"type": "string"}},
+    "simulation_results": {"type": "array", "items": {"type": "string"}},
+    "change_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "risk_notes": {"type": "array", "items": {"type": "string"}},
+    "rollback_notes": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["proposed", "validated", "draft_pr_open", "rejected", "approved", "merged"]}
+  }
+}

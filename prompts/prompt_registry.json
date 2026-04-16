@@ -1,0 +1,10 @@
+{
+  "active_prompt": "prompt_hypothesis_v1.4.0",
+  "available_prompts": [
+    {
+      "prompt_version": "prompt_hypothesis_v1.4.0",
+      "status": "active",
+      "approved_by_review_id": "rev_2026_04_10_005"
+    }
+  ]
+}

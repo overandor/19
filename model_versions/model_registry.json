@@ -1,0 +1,11 @@
+{
+  "active_model": "model_v2.3.1",
+  "models": [
+    {
+      "model_version": "model_v2.3.1",
+      "artifact_checksum": "sha256:placeholder",
+      "status": "active",
+      "approved_by_review_id": "rev_2026_04_10_005"
+    }
+  ]
+}

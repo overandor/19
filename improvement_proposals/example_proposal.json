@@ -1,0 +1,35 @@
+{
+  "proposal_id": "prop-example-001",
+  "created_at": "2026-04-16T00:00:00Z",
+  "source_feedback": {
+    "event_type": "issue_comment",
+    "url": "https://github.com/example/repo/issues/1#issuecomment-1",
+    "author": "researcher",
+    "body": "Add stronger rejection criteria for unstable speculative signals."
+  },
+  "category": "evaluation",
+  "summary": "Strengthen rejection logic and reporting for unstable hypotheses.",
+  "planned_changes": [
+    {
+      "path": "evaluation_reports/SCORING_RUBRIC.md",
+      "change_type": "update",
+      "rationale": "Codify explicit demotion and rejection thresholds."
+    }
+  ],
+  "validation_plan": [
+    "python -m compileall scripts",
+    "schema validation"
+  ],
+  "simulation_plan": [
+    "regime segmented simulation with naive baseline"
+  ],
+  "safety_review": {
+    "contains_live_trading": false,
+    "requires_human_review": true,
+    "risk_notes": [
+      "policy interpretation can be over-broad",
+      "requires reviewer verification"
+    ]
+  },
+  "rollback_plan": "Revert affected rubric update commit and archive result in change_summaries/."
+}

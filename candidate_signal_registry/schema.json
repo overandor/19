@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CandidateSignal",
+  "type": "object",
+  "required": [
+    "signal_id",
+    "name",
+    "family",
+    "status",
+    "hypothesized_mechanism",
+    "required_features",
+    "expected_context",
+    "expected_failure_modes",
+    "evidence_supporting",
+    "evidence_missing",
+    "confidence_in_existence"
+  ],
+  "properties": {
+    "signal_id": { "type": "string" },
+    "name": { "type": "string" },
+    "family": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "imagined",
+        "weakly_supported",
+        "under_test",
+        "rejected",
+        "promising",
+        "unstable",
+        "research_candidate_only"
+      ]
+    },
+    "description": { "type": "string" },
+    "hypothesized_mechanism": { "type": "string" },
+    "required_features": { "type": "array", "items": { "type": "string" } },
+    "expected_context": { "type": "array", "items": { "type": "string" } },
+    "expected_failure_modes": { "type": "array", "items": { "type": "string" } },
+    "evidence_supporting": { "type": "array", "items": { "type": "string" } },
+    "evidence_missing": { "type": "array", "items": { "type": "string" } },
+    "confidence_in_existence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

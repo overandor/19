@@ -1,0 +1,32 @@
+name: repo-self-review
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  self_review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile scripts
+        run: python -m compileall scripts
+      - name: Produce review summary
+        run: |
+          mkdir -p weekly_research_reviews
+          echo "# Weekly repository self-review" > weekly_research_reviews/self_review_$(date -u +%F).md
+          echo "- focus: governance, test coverage, proposal quality" >> weekly_research_reviews/self_review_$(date -u +%F).md
+      - name: Commit review output
+        run: |
+          git config user.name "research-bot"
+          git config user.email "research-bot@users.noreply.github.com"
+          git add weekly_research_reviews/*.md
+          git commit -m "review: weekly repository self-review" || echo "no changes"
+          git push || true

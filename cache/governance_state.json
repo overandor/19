@@ -1,0 +1,28 @@
+{
+  "generated_at": 1776320514,
+  "mode": "research-governed",
+  "controller": "llm-governor",
+  "llm_used": false,
+  "objective": "prioritize evidence quality and rejection discipline",
+  "safety_assertions": {
+    "live_trading_disabled": true,
+    "human_approval_required": true,
+    "auto_merge_disabled": true
+  },
+  "metrics": {
+    "pending_proposals": 1,
+    "simulation_reports": 0,
+    "evaluation_reports": 1
+  },
+  "required_cycle_outputs": [
+    "source_feedback",
+    "interpretation",
+    "affected_files",
+    "diff_summary",
+    "test_results",
+    "simulation_results",
+    "confidence",
+    "risk_notes",
+    "rollback_notes"
+  ]
+}

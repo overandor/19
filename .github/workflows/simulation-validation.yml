@@ -1,0 +1,33 @@
+name: simulation-validation
+
+on:
+  pull_request:
+    paths:
+      - 'candidate_signal_registry/**'
+      - 'simulation_runs/**'
+      - 'evaluation_reports/**'
+      - 'scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile checks
+        run: python -m compileall scripts
+      - name: Safety policy check
+        run: |
+          test -f safety_policies/RESEARCH_GUARDRAILS.md
+      - name: Placeholder simulation report
+        run: |
+          mkdir -p simulation_runs
+          cat > simulation_runs/last_validation.json << 'JSON'
+          {"status":"research_only","note":"no live execution allowed"}
+          JSON

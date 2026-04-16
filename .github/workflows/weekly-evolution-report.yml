@@ -1,0 +1,30 @@
+name: weekly-evolution-report
+
+on:
+  schedule:
+    - cron: '30 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build weekly report
+        run: |
+          mkdir -p weekly_research_reviews
+          report="weekly_research_reviews/evolution_report_$(date -u +%F).md"
+          echo "# Weekly Evolution Report" > "$report"
+          echo "- proposals generated: TODO" >> "$report"
+          echo "- accepted/rejected hypotheses: TODO" >> "$report"
+          echo "- major failures and rollback actions: TODO" >> "$report"
+      - name: Commit report
+        run: |
+          git config user.name "research-bot"
+          git config user.email "research-bot@users.noreply.github.com"
+          git add weekly_research_reviews/*.md
+          git commit -m "report: weekly evolution summary" || echo "no changes"
+          git push || true

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/improvement_proposal.schema.json",
+  "title": "Improvement Proposal",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "source_feedback",
+    "interpretation",
+    "category",
+    "safety_review",
+    "affected_files",
+    "diff_summary",
+    "validation_plan",
+    "confidence",
+    "risk_notes",
+    "rollback_notes",
+    "status"
+  ],
+  "properties": {
+    "proposal_id": { "type": "string" },
+    "source_feedback": {
+      "type": "object",
+      "required": ["event_type", "url", "author", "timestamp_utc"],
+      "properties": {
+        "event_type": { "type": "string" },
+        "url": { "type": "string" },
+        "author": { "type": "string" },
+        "timestamp_utc": { "type": "string" }
+      }
+    },
+    "interpretation": { "type": "string" },
+    "category": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "documentation",
+        "evaluation",
+        "reporting",
+        "test_coverage",
+        "simulation_config",
+        "feature_extraction",
+        "research_taxonomy",
+        "prompting",
+        "dashboard"
+      ]
+    },
+    "safety_review": {
+      "type": "object",
+      "required": ["allowed", "reason"],
+      "properties": {
+        "allowed": { "type": "boolean" },
+        "reason": { "type": "string" }
+      }
+    },
+    "affected_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "diff_summary": { "type": "string" },
+    "validation_plan": {
+      "type": "object",
+      "required": ["tests", "simulations"],
+      "properties": {
+        "tests": { "type": "array", "items": { "type": "string" } },
+        "simulations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "moderate", "high_research"]
+    },
+    "risk_notes": { "type": "array", "items": { "type": "string" } },
+    "rollback_notes": { "type": "array", "items": { "type": "string" } },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "blocked", "ready_for_review", "rejected", "merged"]
+    }
+  }
+}

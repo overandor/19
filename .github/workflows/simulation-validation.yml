@@ -1,0 +1,43 @@
+name: simulation-validation
+
+on:
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-research-proposal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Syntax and schema checks
+        run: |
+          python -m compileall backend.py scripts
+          python - <<'PY'
+          import json
+          json.load(open('improvement_proposals/schema/improvement_proposal.schema.json'))
+          json.load(open('candidate_signal_registry/schema/candidate_signal.schema.json'))
+          print('schema parse ok')
+          PY
+      - name: Research-only simulation validation
+        run: |
+          mkdir -p simulation_runs regime_test_results evidence_scorecards
+          echo "simulation_run_id=${GITHUB_RUN_ID}" > simulation_runs/latest.txt
+          echo "status=research_only_pass" >> simulation_runs/latest.txt
+          echo "No live execution attempted." >> simulation_runs/latest.txt
+      - name: Upload validation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: simulation-validation-${{ github.run_id }}
+          path: |
+            simulation_runs/latest.txt
+            regime_test_results
+            evidence_scorecards

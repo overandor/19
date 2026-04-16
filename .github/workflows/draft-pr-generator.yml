@@ -1,0 +1,57 @@
+name: draft-pr-generator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1-5"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-proposal-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create improvement brief
+        run: |
+          mkdir -p improvement_proposals change_summaries
+          cat > improvement_proposals/proposal_${GITHUB_RUN_ID}.json <<JSON
+          {
+            "proposal_id": "proposal_${GITHUB_RUN_ID}",
+            "source_feedback": {
+              "event_type": "scheduled_review",
+              "url": "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
+              "author": "github-actions",
+              "timestamp_utc": "${GITHUB_RUN_ID}"
+            },
+            "interpretation": "Generate a governed repository improvement snapshot.",
+            "category": "reporting",
+            "safety_review": {"allowed": true, "reason": "research-only change"},
+            "affected_files": ["change_summaries/latest.md"],
+            "diff_summary": "Adds periodic governed change summary.",
+            "validation_plan": {"tests": ["compileall"], "simulations": ["simulation-validation workflow"]},
+            "confidence": "low",
+            "risk_notes": ["May provide low-value summary if little new feedback."],
+            "rollback_notes": ["Revert proposal commit if generated content is low quality."],
+            "status": "draft"
+          }
+          JSON
+          echo "# Change Summary" > change_summaries/latest.md
+          echo "Generated run: ${GITHUB_RUN_ID}" >> change_summaries/latest.md
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "proposal: governed update ${{ github.run_id }}"
+          branch: "proposal/${{ github.run_id }}"
+          title: "Draft: governed improvement proposal ${{ github.run_id }}"
+          body: |
+            Automated draft PR for research-only repository improvement.
+            - Includes rationale artifact.
+            - Requires human review.
+            - No live trading or execution logic.
+          draft: true

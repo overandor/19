@@ -1,0 +1,32 @@
+[
+  {
+    "signal_id": "sig_regime_precursor_001",
+    "family_name": "Regime Transition Precursor",
+    "description": "Hypothesis that rising cross-venue spread entropy combined with liquidity thinning can precede micro-regime transitions.",
+    "hypothesized_mechanism": "Fragmented liquidity and unstable spread formation reflect deteriorating market-making cohesion before volatility-state shifts.",
+    "required_features": ["cross_venue_spread", "quote_depth", "trade_imbalance", "realized_volatility"],
+    "expected_market_context": ["elevated uncertainty", "mixed liquidity conditions"],
+    "expected_failure_modes": ["event-driven one-off shocks", "data synchronization lag"],
+    "confidence_in_existence": "low",
+    "evidence_supporting": ["intermittent lead-lag relationship in two historical windows"],
+    "evidence_missing": ["robust out-of-window replication", "stable calibration"],
+    "status": "under_test",
+    "created_at_utc": "2026-04-16T00:00:00Z",
+    "updated_at_utc": "2026-04-16T00:00:00Z"
+  },
+  {
+    "signal_id": "sig_model_disagreement_002",
+    "family_name": "Model Disagreement Uncertainty State",
+    "description": "Hypothesis that high divergence among independently trained models indicates elevated uncertainty and increased failure risk.",
+    "hypothesized_mechanism": "When latent representations disagree, market structure may be outside learned manifold conditions.",
+    "required_features": ["model_vote_dispersion", "embedding_distance", "prediction_interval_width"],
+    "expected_market_context": ["regime boundaries", "structural breaks"],
+    "expected_failure_modes": ["shared data leakage", "correlated model architecture bias"],
+    "confidence_in_existence": "moderate",
+    "evidence_supporting": ["consistent association with elevated forecast error in three datasets"],
+    "evidence_missing": ["causal isolation from volatility proxy effects"],
+    "status": "weakly_supported",
+    "created_at_utc": "2026-04-16T00:00:00Z",
+    "updated_at_utc": "2026-04-16T00:00:00Z"
+  }
+]

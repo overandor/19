@@ -1,0 +1,40 @@
+name: weekly-evolution-report
+
+on:
+  schedule:
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  weekly-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build weekly report artifact
+        run: |
+          mkdir -p weekly_research_reviews
+          cat > weekly_research_reviews/week_${GITHUB_RUN_ID}.md <<MD
+          # Weekly Evolution Report
+
+          - Run ID: ${GITHUB_RUN_ID}
+          - Scope: Research-only repository evolution
+          - Safety posture: Human approval required for merges
+          - Output types: proposals, validation artifacts, summaries
+
+          ## What improved
+          - Documentation and governance artifacts updated.
+
+          ## What failed or remains uncertain
+          - Candidate signal evidence remains provisional.
+          - More adversarial simulations are required.
+          MD
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weekly_research_reviews
+          git commit -m "weekly-report: ${GITHUB_RUN_ID}" || echo "no changes"
+          git push

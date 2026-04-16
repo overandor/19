@@ -1,0 +1,34 @@
+name: repo-self-review
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  analyze-repo-gaps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate self-review brief
+        run: |
+          mkdir -p evaluation_reports weekly_research_reviews
+          python - <<'PY'
+          from datetime import datetime, timezone
+          ts = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+          review = f"""# Repository Self-Review\n\nGenerated: {ts}\n\n## Focus\n- Safety policy conformance\n- Schema coverage\n- Evaluation/reporting completeness\n\n## Known limitations\n- Research hypotheses remain non-deployable\n- Candidate signals require stronger rejection reporting\n"""
+          open('weekly_research_reviews/self_review_latest.md','w').write(review)
+          PY
+      - name: Commit self-review artifact
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weekly_research_reviews/self_review_latest.md
+          git commit -m "self-review: update ${GITHUB_RUN_ID}" || echo "no changes"
+          git push

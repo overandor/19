@@ -1,0 +1,28 @@
+name: repo-self-review
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  generate-improvement-brief:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aggregate feedback + evaluations
+        run: |
+          mkdir -p change_summaries
+          echo "Weekly repository self-review run on $(date -u +%FT%TZ)" > change_summaries/self_review_brief.md
+          echo "- Inputs: feedback_ingest, evaluation_reports, simulation_runs" >> change_summaries/self_review_brief.md
+          echo "- Output: machine-generated improvement brief (research-only)." >> change_summaries/self_review_brief.md
+      - name: Commit brief to automation branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="auto/self-review-${GITHUB_RUN_ID}"
+          git checkout -b "$branch"
+          git add change_summaries/self_review_brief.md
+          git commit -m "chore: add weekly self-review brief" || echo "No changes to commit"

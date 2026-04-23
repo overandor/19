@@ -1,0 +1,31 @@
+{
+  "proposal_id": "prop-2026-04-16-001",
+  "created_utc": "2026-04-16T00:00:00Z",
+  "source_feedback": {
+    "channel": "issue_comment",
+    "reference": "https://github.com/org/repo/issues/12#issuecomment-1",
+    "author": "analyst_a"
+  },
+  "interpretation": "Improve failure-mode reporting granularity for regime transitions.",
+  "category": "reporting",
+  "affected_files": [
+    "signal_discovery_reports/",
+    "evidence_scorecards/"
+  ],
+  "diff_summary": "Adds regime-transition section and uncertainty notes in scorecards.",
+  "test_results": [
+    "schema_validation:pass",
+    "unit_tests:pass"
+  ],
+  "simulation_results": [
+    "walkforward_regime_split:pass"
+  ],
+  "change_confidence": 0.62,
+  "risk_notes": [
+    "Possible over-segmentation of regime labels"
+  ],
+  "rollback_notes": [
+    "Revert proposal branch commit and restore prior scorecard template"
+  ],
+  "status": "draft_pr_open"
+}

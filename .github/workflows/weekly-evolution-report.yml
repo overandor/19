@@ -1,0 +1,31 @@
+name: weekly-evolution-report
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate weekly governance report
+        run: |
+          mkdir -p weekly_research_reviews
+          report="weekly_research_reviews/$(date -u +%G-W%V)-review.md"
+          cat > "$report" <<TXT
+          # Weekly Evolution Governance Report
+          - generated_utc: $(date -u +%FT%TZ)
+          - scope: automated repository evolution
+          - includes: proposal outcomes, rejected ideas, risk notes, rollback readiness
+          - policy: no live trading behavior; human approval mandatory
+          TXT
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weekly_research_reviews/*.md
+          git commit -m "docs: add weekly evolution governance report" || echo "No changes to commit"

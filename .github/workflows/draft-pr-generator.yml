@@ -1,0 +1,46 @@
+name: draft-pr-generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      proposal_id:
+        description: "Improvement proposal identifier"
+        required: true
+        type: string
+
+jobs:
+  open-draft-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create/update proposal branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="auto/proposal-${{ github.event.inputs.proposal_id }}"
+          git checkout -B "$branch"
+          mkdir -p change_summaries
+          cat > "change_summaries/${{ github.event.inputs.proposal_id }}.md" <<TXT
+          # Draft Improvement Summary
+          - proposal_id: ${{ github.event.inputs.proposal_id }}
+          - rationale: machine-generated from validated feedback
+          - constraints: research-only, no live deployment
+          - status: draft PR requested
+          TXT
+          git add "change_summaries/${{ github.event.inputs.proposal_id }}.md"
+          git commit -m "chore: prepare draft proposal ${{ github.event.inputs.proposal_id }}" || echo "No changes to commit"
+          git push --set-upstream origin "$branch" --force
+      - name: Open draft PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: auto/proposal-${{ github.event.inputs.proposal_id }}
+          base: main
+          title: "[Draft] Automated improvement: ${{ github.event.inputs.proposal_id }}"
+          draft: true
+          body: |
+            Machine-generated proposal.
+            - Includes rationale, tests, and rollback notes.
+            - Human approval required before merge.

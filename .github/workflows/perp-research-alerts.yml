@@ -1,0 +1,46 @@
+name: Perp Research Alerts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *" # every 15 minutes (UTC)
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: perp-research-alerts
+  cancel-in-progress: false
+
+jobs:
+  run-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run Gate + Binance research watcher
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/perp_research_alerts.py
+
+      - name: Upload history snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-alert-history
+          path: alerts/history/*.json
+          if-no-files-found: warn

@@ -3,7 +3,7 @@ import time
 import pytest
 
 from core.hypothesis_engine import HypothesisEngine, Hypothesis
-from core.evaluation_engine import EvaluationEngine, EvaluationResult
+from core.evaluation_engine import EvaluationEngine
 from core.feature_engine import FeatureEngine
 from core.approval_gate import ApprovalGate, GateDecision
 

@@ -1,6 +1,4 @@
 """Integration tests for the FastAPI backend."""
-import json
-import pytest
 from fastapi.testclient import TestClient
 
 from backend import app

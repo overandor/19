@@ -1,8 +1,7 @@
-import requests
-import json
 import logging
-import os
-from typing import List, Dict
+from typing import Dict, List
+
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ingestion")

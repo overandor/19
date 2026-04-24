@@ -1,5 +1,4 @@
 """Tests for scripts/edge_math.py"""
-import pytest
 from scripts.edge_math import edge_bps
 
 

@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "name": "autonomous-alpha-console",
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "signals.json",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "cache/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/signals.json", "dest": "/signals.json" },
+    { "src": "/cache/(.*)",   "dest": "/cache/$1" },
+    { "src": "/(.*)",         "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}

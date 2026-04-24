@@ -1,0 +1,13 @@
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.ruff_cache
+.git
+.env
+*.env
+tests/
+requirements-dev.txt
+*.md
+REDESIGN_PLAN.md
+report.txt

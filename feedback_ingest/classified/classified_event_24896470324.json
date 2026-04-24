@@ -1,0 +1,6 @@
+{
+  "event_file": "feedback_ingest/raw/event_24896470324.json",
+  "category": "test_coverage",
+  "safety_allowed": true,
+  "reason": "research-only safe"
+}

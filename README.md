@@ -1,45 +1,60 @@
-# Speculative Signal Discovery Lab (Governed, Research-Only)
+# Speculative Signal Research Lab (Governed, Research-Only)
+https://overaj.vercel.app/
+This repository is re-framed as a **research operating system** for discovering and evaluating **hypothetical, currently non-existent signal classes**.
 
-This repository is an institutional research environment for discovering and evaluating **hypothetical, currently non-existent signal classes**.
+## Non-Negotiable Constraints
 
-It is designed as a governed software system with GitHub Actions-assisted self-improvement under strict human oversight.
+- Research-only: no live trading execution, no order routing, no trade deployment.
+- Governance-first: all machine-generated changes are branch-based, testable, reversible, and human-reviewed.
+- Skeptical by design: candidate patterns are assumed to be noise until evidence survives adversarial testing.
 
-## Non-Negotiable Safety Constraints
+## Mission
 
-- No live trading instructions.
-- No real-time trade calls or entries.
-- No autonomous strategy deployment.
-- No auto-merge of machine-generated changes.
-- No safety gate weakening through automation.
+Build and continuously improve a governed pipeline that:
 
-## What This System Does
+1. Ingests comments, issue feedback, and evaluation artifacts.
+2. Converts valid feedback into structured improvement proposals.
+3. Proposes repository changes in draft PRs.
+4. Runs tests and simulation validation before review.
+5. Records rationale, confidence, risk, and rollback notes.
 
-- explores candidate signal families from market structure and contextual data,
-- records hypotheses and evidence with explicit uncertainty,
-- runs simulation and falsification tests,
-- rejects weak/noisy candidates aggressively,
-- converts feedback into draft improvement PRs via controlled workflows.
+## Repository Areas
 
-## Key Design Surfaces
+- `.github/workflows/` — governed automation workflows.
+- `feedback_ingest/` — parsed and classified feedback artifacts.
+- `improvement_proposals/` — proposal JSON files and schemas.
+- `evaluation_reports/` — evaluation outputs and scorecards.
+- `simulation_runs/` — non-execution simulation artifacts.
+- `prompt_versions/` — prompt and hypothesis-template versions.
+- `change_summaries/` — machine-generated change narratives.
+- `safety_policies/` — hard safety requirements.
+- `candidate_signal_registry/` — speculative signal registry and status transitions.
+- `signal_discovery_reports/` — periodic discovery reports.
+- `rejected_signal_archive/` — rejected hypotheses and failure evidence.
+- `regime_test_results/` — regime-segmented evaluation results.
+- `feature_interaction_maps/` — interactions and latent factor diagnostics.
+- `weekly_research_reviews/` — weekly governed status reviews.
+- `speculative_signal_taxonomy/` — evolving taxonomy of candidate signal families.
+- `evidence_scorecards/` — standardized confidence and rejection scorecards.
 
-- Redesign blueprint: `docs/RESEARCH_LAB_REDESIGN.md`
-- Schemas: `docs/schemas/`
-- Automation workflows: `.github/workflows/`
-- Safety policies: `safety_policies/`
-- Improvement proposals: `improvement_proposals/`
-- Candidate signal registry: `candidate_signal_registry/`
-- Research alerts: `docs/RESEARCH_ALERTS.md`
+## Key Design Documents
 
-## Governance Model
+- `docs/repo_redesign_plan.md`
+- `docs/module_architecture.md`
+- `docs/testing_and_scoring_framework.md`
+- `safety_policies/research_only_policy.md`
+- `.github/pull_request_template.md`
+- `improvement_proposals/schema/improvement_proposal.schema.json`
+- `candidate_signal_registry/schema/candidate_signal.schema.json`
 
-All meaningful repository evolution follows:
+## Workflow Set
 
-1. feedback ingest,
-2. proposal generation,
-3. branch-based change,
-4. test + simulation validation,
-5. draft PR generation,
-6. human review and approval,
-7. merge with rollback traceability.
+The repository includes workflow skeletons for governed self-improvement:
 
-This repository should feel like a governed discovery engine, not a live trading bot.
+- `feedback-ingest.yml`
+- `repo-self-review.yml`
+- `simulation-validation.yml`
+- `draft-pr-generator.yml`
+- `weekly-evolution-report.yml`
+
+All workflow outputs are review artifacts; none can merge strategy logic without explicit human approval.

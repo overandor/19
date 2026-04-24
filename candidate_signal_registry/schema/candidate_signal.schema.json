@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/schemas/candidate_signal.schema.json",
+  "title": "Candidate Signal",
+  "type": "object",
+  "required": [
+    "signal_id",
+    "family_name",
+    "description",
+    "hypothesized_mechanism",
+    "required_features",
+    "expected_market_context",
+    "expected_failure_modes",
+    "confidence_in_existence",
+    "evidence_supporting",
+    "evidence_missing",
+    "status",
+    "created_at_utc"
+  ],
+  "properties": {
+    "signal_id": { "type": "string" },
+    "family_name": { "type": "string" },
+    "description": { "type": "string" },
+    "hypothesized_mechanism": { "type": "string" },
+    "required_features": { "type": "array", "items": { "type": "string" } },
+    "expected_market_context": { "type": "array", "items": { "type": "string" } },
+    "expected_failure_modes": { "type": "array", "items": { "type": "string" } },
+    "confidence_in_existence": {
+      "type": "string",
+      "enum": ["very_low", "low", "moderate", "uncertain"]
+    },
+    "evidence_supporting": { "type": "array", "items": { "type": "string" } },
+    "evidence_missing": { "type": "array", "items": { "type": "string" } },
+    "status": {
+      "type": "string",
+      "enum": [
+        "imagined",
+        "weakly_supported",
+        "under_test",
+        "rejected",
+        "promising",
+        "unstable",
+        "research_candidate_only"
+      ]
+    },
+    "created_at_utc": { "type": "string" },
+    "updated_at_utc": { "type": "string" }
+  }
+}

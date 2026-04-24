@@ -1,5 +1,3 @@
-# Prompt Versions
+# prompt_versions
 
-Versioned prompt artifacts for hypothesis naming/categorization.
-
-Activation requires approved PR and registry update.
+Research artifact directory.

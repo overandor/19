@@ -1,3 +1,3 @@
-# Regime Test Results
+# regime_test_results
 
-Store regime-conditioned test outputs for candidate signals.
+Research artifact directory.

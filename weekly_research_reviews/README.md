@@ -1,3 +1,3 @@
-# Weekly Research Reviews
+# weekly_research_reviews
 
-Weekly governance-first review outputs from automated and human processes.
+Research artifact directory.

@@ -1,3 +1,3 @@
-# Signal Discovery Reports
+# signal_discovery_reports
 
-Narrative and quantitative reports from discovery experiments.
+Research artifact directory.

@@ -2,44 +2,57 @@ name: feedback-ingest
 
 on:
   issues:
-    types: [opened, edited, labeled]
+    types: [opened, edited, reopened]
   issue_comment:
     types: [created, edited]
   pull_request_review_comment:
     types: [created, edited]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  classify-feedback:
+  ingest-and-classify:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
     steps:
       - uses: actions/checkout@v4
-      - name: Build feedback event payload
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ingest feedback event
         run: |
-          mkdir -p feedback_ingest/raw
-          echo '${{ toJson(github.event) }}' > feedback_ingest/raw/event.json
-      - name: Classify feedback into improvement themes
+          mkdir -p feedback_ingest/raw feedback_ingest/classified
+          echo '${{ toJson(github.event) }}' > feedback_ingest/raw/event_${{ github.run_id }}.json
+      - name: Classify improvement theme (research-only)
         run: |
           python - <<'PY'
-          import json, pathlib, datetime
-          p = pathlib.Path('feedback_ingest/raw/event.json')
-          e = json.loads(p.read_text())
-          out = {
-            "ingested_utc": datetime.datetime.utcnow().isoformat() + "Z",
-            "event_name": e.get("action", "unknown"),
-            "channel": "issue_or_pr_comment",
-            "theme_candidates": ["documentation", "evaluation_logic", "research_taxonomy"],
-            "unsafe": False,
-            "notes": "Skeleton classifier output; replace with policy-aware model."
-          }
-          pathlib.Path('feedback_ingest/classified_feedback.json').write_text(json.dumps(out, indent=2))
+          import json, pathlib
+          raw = pathlib.Path('feedback_ingest/raw').glob('event_*.json')
+          for p in raw:
+            e = json.loads(p.read_text())
+            text = json.dumps(e).lower()
+            unsafe = any(k in text for k in ['buy now','sell now','live order','execute trade'])
+            category = 'documentation'
+            if 'test' in text or 'coverage' in text:
+              category = 'test_coverage'
+            elif 'simulation' in text:
+              category = 'simulation_config'
+            elif 'feature' in text:
+              category = 'feature_extraction'
+            out = {
+              'event_file': str(p),
+              'category': category,
+              'safety_allowed': not unsafe,
+              'reason': 'blocked unsafe language' if unsafe else 'research-only safe'
+            }
+            outp = pathlib.Path('feedback_ingest/classified') / f'classified_{p.stem}.json'
+            outp.write_text(json.dumps(out, indent=2))
           PY
-      - name: Upload classification artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: classified-feedback
-          path: feedback_ingest/classified_feedback.json
+      - name: Commit ingest artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add feedback_ingest/raw feedback_ingest/classified
+          git commit -m "feedback-ingest: run ${{ github.run_id }}" || echo "no changes"
+          git push

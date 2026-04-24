@@ -1,3 +1,3 @@
-# Change Summaries
+# change_summaries
 
-Machine-generated rationale + diff summaries attached to draft PRs.
+Research artifact directory.

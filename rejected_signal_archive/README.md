@@ -1,3 +1,3 @@
-# Rejected Signal Archive
+# rejected_signal_archive
 
-Archive of demoted/rejected candidate signals with rejection rationale.
+Research artifact directory.

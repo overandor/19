@@ -1,7 +1,3 @@
-# Evaluation Reports
+# evaluation_reports
 
-Stores periodic research evaluation artifacts:
-- calibration summaries
-- drift analyses
-- baseline comparisons
-- rejection recommendations
+Research artifact directory.

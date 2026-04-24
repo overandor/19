@@ -1,0 +1,48 @@
+name: Research Watcher
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Run hourly
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  run-watcher:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Ingestion
+        run: python core/ingestion.py
+
+      - name: Create or Update Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s alerts.md ]; then
+            # Find an existing open issue titled "Market Research Alerts"
+            ISSUE_NUMBER=$(gh issue list --search "in:title \"Market Research Alerts\"" --state open --json number --jq '.[0].number')
+
+            if [ -z "$ISSUE_NUMBER" ]; then
+              # Create a new issue
+              gh issue create --title "Market Research Alerts - $(date -u '+%Y-%m-%d')" --body-file alerts.md
+            else
+              # Add a comment to the existing issue
+              gh issue comment $ISSUE_NUMBER --body-file alerts.md
+            fi
+          else
+            echo "No alerts.md generated or file is empty."
+          fi

@@ -1,3 +1,3 @@
-# Evidence Scorecards
+# evidence_scorecards
 
-Candidate-level evidence scoring and promotion/rejection decisions.
+Research artifact directory.

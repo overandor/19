@@ -1,3 +1,3 @@
-# Feature Interaction Maps
+# feature_interaction_maps
 
-Research artifacts for higher-order feature interactions and latent structures.
+Research artifact directory.

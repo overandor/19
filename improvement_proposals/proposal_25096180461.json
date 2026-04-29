@@ -1,0 +1,19 @@
+{
+  "proposal_id": "proposal_25096180461",
+  "source_feedback": {
+    "event_type": "scheduled_review",
+    "url": "https://github.com/overandor/19/actions/runs/25096180461",
+    "author": "github-actions",
+    "timestamp_utc": "25096180461"
+  },
+  "interpretation": "Generate a governed repository improvement snapshot.",
+  "category": "reporting",
+  "safety_review": {"allowed": true, "reason": "research-only change"},
+  "affected_files": ["change_summaries/latest.md"],
+  "diff_summary": "Adds periodic governed change summary.",
+  "validation_plan": {"tests": ["compileall"], "simulations": ["simulation-validation workflow"]},
+  "confidence": "low",
+  "risk_notes": ["May provide low-value summary if little new feedback."],
+  "rollback_notes": ["Revert proposal commit if generated content is low quality."],
+  "status": "draft"
+}

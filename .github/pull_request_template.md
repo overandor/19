@@ -1,43 +1,39 @@
-## Proposal Summary
+## Change Type
+- [ ] Documentation
+- [ ] Evaluation logic
+- [ ] Simulation configuration
+- [ ] Research taxonomy
+- [ ] Prompt versioning
+- [ ] Feature extraction
+- [ ] Dashboard/reporting
 
-- Proposal ID:
-- Source feedback URL:
-- Improvement category:
-- Safety review outcome:
+## Source Feedback
+- Reference:
+- Channel (issue/comment/evaluation/manual):
+- Interpretation:
 
-## Interpretation
-
-Describe how the feedback was interpreted and what was intentionally out of scope.
-
-## Files Changed
-
-List affected files and why.
-
-## Diff Summary
-
-Provide a concise machine-generated summary.
+## What Changed
+- Affected files:
+- Diff summary:
 
 ## Validation Evidence
+- Tests run:
+- Simulation run IDs:
+- Schema checks:
 
-- Test results:
-- Simulation results:
-- Confidence (`low|moderate|high_research`):
+## Safety & Governance
+- [ ] No live trade instructions or deployable execution logic added.
+- [ ] Change remains research-only.
+- [ ] Safety gates unchanged or strengthened.
+- [ ] Rollback notes included.
 
 ## Risk Notes
-
-- Known failure modes:
-- Assumptions:
-- Reasons this may still be noise:
+-
 
 ## Rollback Notes
+-
 
-- Revert command:
-- Files to inspect post-revert:
-- Verification checks:
-
-## Governance Checklist
-
-- [ ] No live trade entries, order instructions, or execution logic
-- [ ] Safety policy unchanged or strengthened
-- [ ] Branch-based proposal (not direct default-branch change)
-- [ ] Human approval required before merge
+## Reviewer Checklist
+- [ ] Evidence supports proposed change.
+- [ ] Uncertainty and limitations are explicit.
+- [ ] Approval is intentional and documented.

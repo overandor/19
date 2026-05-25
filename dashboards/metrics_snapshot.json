@@ -1,0 +1,13 @@
+{
+  "generated_utc": "2026-04-16T00:00:00Z",
+  "active_versions": {
+    "model": "model_v2.3.1",
+    "prompt": "prompt_hypothesis_v1.4.0",
+    "feature": "features_v1.2.0"
+  },
+  "headline_metrics": {
+    "sample_size_7d": 0,
+    "hit_rate_7d": null,
+    "brier_7d": null
+  }
+}

@@ -2,56 +2,45 @@ name: draft-pr-generator
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 5 * * 1-5"
-
-permissions:
-  contents: write
-  pull-requests: write
+    inputs:
+      proposal_id:
+        description: "Improvement proposal identifier"
+        required: true
+        type: string
 
 jobs:
-  generate-proposal-pr:
+  open-draft-pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Create improvement brief
+      - name: Create/update proposal branch
         run: |
-          mkdir -p improvement_proposals change_summaries
-          cat > improvement_proposals/proposal_${GITHUB_RUN_ID}.json <<JSON
-          {
-            "proposal_id": "proposal_${GITHUB_RUN_ID}",
-            "source_feedback": {
-              "event_type": "scheduled_review",
-              "url": "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
-              "author": "github-actions",
-              "timestamp_utc": "${GITHUB_RUN_ID}"
-            },
-            "interpretation": "Generate a governed repository improvement snapshot.",
-            "category": "reporting",
-            "safety_review": {"allowed": true, "reason": "research-only change"},
-            "affected_files": ["change_summaries/latest.md"],
-            "diff_summary": "Adds periodic governed change summary.",
-            "validation_plan": {"tests": ["compileall"], "simulations": ["simulation-validation workflow"]},
-            "confidence": "low",
-            "risk_notes": ["May provide low-value summary if little new feedback."],
-            "rollback_notes": ["Revert proposal commit if generated content is low quality."],
-            "status": "draft"
-          }
-          JSON
-          echo "# Change Summary" > change_summaries/latest.md
-          echo "Generated run: ${GITHUB_RUN_ID}" >> change_summaries/latest.md
-      - name: Create pull request
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="auto/proposal-${{ github.event.inputs.proposal_id }}"
+          git checkout -B "$branch"
+          mkdir -p change_summaries
+          cat > "change_summaries/${{ github.event.inputs.proposal_id }}.md" <<TXT
+          # Draft Improvement Summary
+          - proposal_id: ${{ github.event.inputs.proposal_id }}
+          - rationale: machine-generated from validated feedback
+          - constraints: research-only, no live deployment
+          - status: draft PR requested
+          TXT
+          git add "change_summaries/${{ github.event.inputs.proposal_id }}.md"
+          git commit -m "chore: prepare draft proposal ${{ github.event.inputs.proposal_id }}" || echo "No changes to commit"
+          git push --set-upstream origin "$branch" --force
+      - name: Open draft PR
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "proposal: governed update ${{ github.run_id }}"
-          branch: "proposal/${{ github.run_id }}"
-          title: "Draft: governed improvement proposal ${{ github.run_id }}"
-          body: |
-            Automated draft PR for research-only repository improvement.
-            - Includes rationale artifact.
-            - Requires human review.
-            - No live trading or execution logic.
+          branch: auto/proposal-${{ github.event.inputs.proposal_id }}
+          base: main
+          title: "[Draft] Automated improvement: ${{ github.event.inputs.proposal_id }}"
           draft: true
+          body: |
+            Machine-generated proposal.
+            - Includes rationale, tests, and rollback notes.
+            - Human approval required before merge.

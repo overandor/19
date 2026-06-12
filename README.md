@@ -42,7 +42,7 @@ Build and continuously improve a governed pipeline that:
 - `docs/repo_redesign_plan.md`
 - `docs/module_architecture.md`
 - `docs/testing_and_scoring_framework.md`
-- `docs/REPLIT_DEPLOYMENT.md`
+- `docs/DISTRIBUTED_LLM_INFERENCE.md`
 - `safety_policies/research_only_policy.md`
 - `.github/pull_request_template.md`
 - `improvement_proposals/schema/improvement_proposal.schema.json`

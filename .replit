@@ -1,0 +1,19 @@
+modules = ["python-3.11"]
+
+# Run the FastAPI backend (signals/focus API) when this Repl starts.
+run = "uvicorn backend:app --host 0.0.0.0 --port 8765"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["sh", "-c", "uvicorn backend:app --host 0.0.0.0 --port 8765"]
+build = ["sh", "-c", "pip install -r requirements.txt"]
+
+[[ports]]
+localPort = 8765
+externalPort = 80
+
+[env]
+PORT = "8765"
+DATA_ROOT = "."
+SIGNALS_PATH = "./signals.json"
+FOCUS_PATH = "./cache/focus.json"

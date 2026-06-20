@@ -6,4 +6,8 @@ pydantic>=2.6.0,<3.0
 slowapi>=0.1.9,<1.0
 python-json-logger>=2.0.7,<3.0
 
+# memory_credit_daemon (devnet/localnet-only Solana credits token, see
+# docs/MEMORY_CREDIT_DAEMON.md) — also bundles the spl.token namespace.
+solana>=0.37.0,<1.0
+
 # Dev / test (install with: pip install -r requirements-dev.txt)

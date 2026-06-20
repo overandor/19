@@ -36,6 +36,7 @@ Build and continuously improve a governed pipeline that:
 - `weekly_research_reviews/` — weekly governed status reviews.
 - `speculative_signal_taxonomy/` — evolving taxonomy of candidate signal families.
 - `evidence_scorecards/` — standardized confidence and rejection scorecards.
+- `memory_credit_daemon/` — v0 metering daemon for compute-reuse receipts and a devnet/localnet-only credits token (no mainnet path).
 
 ## Key Design Documents
 
@@ -43,6 +44,7 @@ Build and continuously improve a governed pipeline that:
 - `docs/module_architecture.md`
 - `docs/testing_and_scoring_framework.md`
 - `docs/DISTRIBUTED_LLM_INFERENCE.md`
+- `docs/MEMORY_CREDIT_DAEMON.md`
 - `safety_policies/research_only_policy.md`
 - `.github/pull_request_template.md`
 - `improvement_proposals/schema/improvement_proposal.schema.json`

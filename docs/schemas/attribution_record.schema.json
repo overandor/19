@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AttributionRecord",
+  "description": "What probably caused an outcome, stated honestly. Implemented by advantage_foundry/attribution.py. The default view renders bands; shares live only in the audit payload.",
+  "type": "object",
+  "required": ["outcome_id", "summary", "contributions", "counterfactual"],
+  "properties": {
+    "outcome_id": {"type": "string"},
+    "summary": {"type": "string"},
+    "from_state": {"type": "string"},
+    "to_state": {"type": "string"},
+    "contributions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["actor", "share"],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "enum": [
+              "field_representative",
+              "market_access",
+              "assigned_strategy",
+              "manager",
+              "territory_conditions",
+              "external_market"
+            ]
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Audit-only. Never rendered in the default view — no '27.43%'."
+          },
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "counterfactual": {
+      "type": "object",
+      "required": ["observed", "baseline", "sample"],
+      "properties": {
+        "observed": {"type": "number", "minimum": 0, "maximum": 1},
+        "baseline": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Matched comparison, not last quarter's number."
+        },
+        "sample": {"type": "integer", "minimum": 0},
+        "confounders": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Named, not hidden. Each one costs a confidence level."
+        }
+      }
+    },
+    "what_mattered": {"type": "string"},
+    "what_did_not_matter": {
+      "type": ["string", "null"],
+      "description": "Rendered only when a component was actually varied and measured. Never filled with a plausible guess."
+    },
+    "created_at": {"type": "integer"}
+  },
+  "$comment": "Contribution shares are not required to sum to 1. Whatever the known actors do not explain is published as an unexplained remainder; distributing 100% of every outcome is the fake-causality failure mode this schema exists to prevent."
+}

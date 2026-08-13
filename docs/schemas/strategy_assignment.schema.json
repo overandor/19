@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StrategyAssignment",
+  "description": "The product's central primitive: an operating method, its conditions, and its test. Implemented by advantage_foundry/portfolio.py.",
+  "type": "object",
+  "required": [
+    "assignment_id", "employee_id", "strategy_id", "klass", "sequence",
+    "why", "evidence", "expected_effect", "not_for_evaluation", "actions"
+  ],
+  "properties": {
+    "assignment_id": {"type": "string"},
+    "employee_id": {"type": "string"},
+    "strategy_id": {"type": "string"},
+    "strategy_name": {"type": "string"},
+    "klass": {
+      "type": "string",
+      "description": "The lane, always labelled. Experimental work is never presented as established.",
+      "enum": ["proven", "personalized", "experimental"]
+    },
+    "constraint_addressed": {"type": "string"},
+    "account_ref": {"type": ["string", "null"]},
+    "sequence": {"type": "array", "items": {"type": "string"}},
+    "why": {"type": "string", "description": "One cohort-grounded sentence. Required — an assignment without a reason is not shippable."},
+    "evidence": {
+      "type": "string",
+      "enum": ["unresolved", "observed_association", "probable_contribution", "experimentally_supported"]
+    },
+    "effort_minutes": {"type": "integer", "minimum": 0},
+    "expected_effect": {
+      "type": "array",
+      "description": "A band [low, high]. Never a point estimate.",
+      "items": {"type": "number"},
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "evaluation_days": {"type": "integer", "minimum": 1},
+    "risk": {"type": "string", "enum": ["low", "moderate"]},
+    "reversible": {"type": "boolean"},
+    "not_for_evaluation": {
+      "const": true,
+      "description": "Assignments may never determine compensation, promotion, discipline, termination, or ranking."
+    },
+    "assigned_at": {"type": "integer"},
+    "actions": {
+      "type": "array",
+      "description": "Employee agency. Decline is always present and never requires a reason.",
+      "items": {
+        "type": "string",
+        "enum": ["complete", "schedule", "modify", "replace", "decline", "data_wrong"]
+      },
+      "contains": {"const": "decline"}
+    }
+  }
+}

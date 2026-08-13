@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StrategyGenome",
+  "description": "A structured strategy: comparable, modifiable, and transferable. Implemented by advantage_foundry/genome.py.",
+  "type": "object",
+  "required": ["strategy_id", "name", "varies", "sequence", "evidence", "lifecycle"],
+  "properties": {
+    "strategy_id": {"type": "string"},
+    "name": {"type": "string"},
+    "varies": {
+      "type": "array",
+      "description": "Compliance dimensions this strategy varies. Only permitted dimensions may appear; unknown values are rejected.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "timing",
+          "channel",
+          "route",
+          "stakeholder",
+          "approved_content_sequence",
+          "workflow_organization",
+          "follow_up_interval",
+          "account_prioritization",
+          "administrative_execution"
+        ]
+      },
+      "minItems": 1
+    },
+    "sequence": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "eligibility": {
+      "type": "object",
+      "properties": {
+        "account_states": {"type": "array", "items": {"type": "string"}},
+        "barriers": {"type": "array", "items": {"type": "string"}},
+        "territory_types": {"type": "array", "items": {"type": "string"}},
+        "min_qualifying_accounts": {"type": "integer", "minimum": 0},
+        "min_tenure_days": {"type": "integer", "minimum": 0},
+        "forbidden_account_states": {"type": "array", "items": {"type": "string"}},
+        "forbidden_conditions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "stakeholder": {"type": ["string", "null"]},
+    "channel": {"type": ["string", "null"]},
+    "timing_window": {"type": ["string", "null"]},
+    "follow_up_hours": {"type": ["integer", "null"], "minimum": 0},
+    "content": {"type": ["string", "null"]},
+    "escalation_rule": {"type": ["string", "null"]},
+    "stopping_condition": {"type": ["string", "null"]},
+    "expected_outcome": {"type": "string"},
+    "evidence": {
+      "type": "string",
+      "description": "experimentally_supported is the ceiling. No value asserts proof.",
+      "enum": ["unresolved", "observed_association", "probable_contribution", "experimentally_supported"]
+    },
+    "lifecycle": {
+      "type": "string",
+      "enum": ["proposed", "simulated", "shadow_tested", "limited_trial", "supported", "expanded", "monitored", "retired"]
+    },
+    "expected_effect": {"type": "number"},
+    "effect_low": {"type": "number", "description": "Lower credible bound. Exploration guardrails compare against this, never the point estimate."},
+    "effect_high": {"type": "number"},
+    "execution_cost_minutes": {"type": "integer", "minimum": 0},
+    "known_failure": {"type": ["string", "null"]},
+    "risk": {
+      "type": "string",
+      "description": "High-risk activity receives no experimental variation and cannot be represented here.",
+      "enum": ["low", "moderate"]
+    },
+    "parent_ids": {
+      "type": "array",
+      "description": "Populated for recombined challengers. Components may only be inherited from parents at probable_contribution or above.",
+      "items": {"type": "string"}
+    },
+    "created_at": {"type": "integer"}
+  }
+}

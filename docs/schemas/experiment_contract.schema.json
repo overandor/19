@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExperimentContract",
+  "description": "A bounded, reversible, visible, stoppable test. Implemented by advantage_foundry/experiments.py.",
+  "type": "object",
+  "required": [
+    "experiment_id", "hypothesis", "what_is_unknown", "primary_outcome",
+    "duration_days", "variants", "guardrails", "stop_conditions"
+  ],
+  "properties": {
+    "experiment_id": {"type": "string"},
+    "hypothesis": {"type": "string", "minLength": 1},
+    "what_is_known": {"type": "string"},
+    "what_is_unknown": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Required. A strategy whose unknown cannot be named is a guess, not an experiment, and does not ship."
+    },
+    "primary_outcome": {"type": "string"},
+    "secondary_outcomes": {"type": "array", "items": {"type": "string"}},
+    "duration_days": {"type": "integer", "minimum": 1},
+    "variants": {
+      "type": "object",
+      "description": "Arm name to strategy genome. Must include 'control' and at least one other arm.",
+      "required": ["control"],
+      "minProperties": 2,
+      "additionalProperties": {"$ref": "strategy_genome.schema.json"}
+    },
+    "min_qualifying_accounts": {"type": "integer", "minimum": 1},
+    "excluded_conditions": {"type": "array", "items": {"type": "string"}},
+    "exclude_onboarding": {"type": "boolean"},
+    "guardrails": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Base guardrails are always present and cannot be removed by a caller.",
+      "allOf": [
+        {"contains": {"const": "Approved materials only"}},
+        {"contains": {"const": "No altered claims"}},
+        {"contains": {"const": "No contact frequency above policy"}},
+        {"contains": {"const": "No patient-level targeting"}},
+        {"contains": {"const": "Not used in compensation, ranking, or review"}}
+      ]
+    },
+    "stop_conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "threshold": {"type": ["number", "null"]}
+        }
+      }
+    },
+    "risk": {"type": "string", "enum": ["low", "moderate"]},
+    "created_at": {"type": "integer"}
+  }
+}

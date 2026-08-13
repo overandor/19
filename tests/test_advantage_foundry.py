@@ -5,40 +5,68 @@ must not do, so they are tested as hard failures rather than left to review.
 """
 import pytest
 
-from advantage_foundry import (AdvantageFoundry, AllocationInputs, AttributionRecord,
-                               Band, Contribution, ContextResult, Counterfactual, Decay,
-                               Eligibility, Employee, EvidenceClass, ExperimentContract,
-                               GovernanceViolation, Lifecycle, Portability,
-                               StrategyGenome, Territory, advance, allocate,
-                               allocate_variants, assert_not_evaluative,
-                               assess_decay, assess_portability, assess_repeatability,
-                               check_stop, check_variation, credit_ledger, detect_gaming,
-                               enforce, manager_safe, match_cohort, place, plan_diffusion,
-                               recombine, score_employee, select, strip_experimental)
+from advantage_foundry import (
+    AdvantageFoundry,
+    AllocationInputs,
+    AttributionRecord,
+    Band,
+    ContextResult,
+    Contribution,
+    Counterfactual,
+    Decay,
+    Eligibility,
+    Employee,
+    EvidenceClass,
+    ExperimentContract,
+    GovernanceViolation,
+    Lifecycle,
+    Portability,
+    StrategyGenome,
+    Territory,
+    advance,
+    allocate,
+    allocate_variants,
+    assert_not_evaluative,
+    assess_decay,
+    assess_portability,
+    assess_repeatability,
+    check_stop,
+    check_variation,
+    credit_ledger,
+    detect_gaming,
+    enforce,
+    manager_safe,
+    match_cohort,
+    place,
+    plan_diffusion,
+    recombine,
+    score_employee,
+    select,
+    strip_experimental,
+)
 from advantage_foundry.compliance import ComplianceViolation
 from advantage_foundry.genome import LifecycleError
 from advantage_foundry.governance import override_is_signal
 from advantage_foundry.portfolio import EXPERIMENTAL, slots, within_acceptable_band
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
 def make_territory(**kwargs) -> Territory:
-    defaults = dict(territory_id="T1", product="alpha", opportunity=1.0,
-                    maturity=1.0, resources=1.0, access_difficulty=1.0,
-                    territory_type="integrated", restrictions=[])
+    defaults = {"territory_id": "T1", "product": "alpha", "opportunity": 1.0,
+                "maturity": 1.0, "resources": 1.0, "access_difficulty": 1.0,
+                "territory_type": "integrated", "restrictions": []}
     defaults.update(kwargs)
     return Territory(**defaults)
 
 
 def make_employee(employee_id="e0", **kwargs) -> Employee:
-    defaults = dict(
-        name="Jordan Lee",
-        territory=make_territory(),
-        tenure_days=800,
-        qualifying_accounts=14,
-        observed_result=100.0,
-        dimensions={
+    defaults = {
+        "name": "Jordan Lee",
+        "territory": make_territory(),
+        "tenure_days": 800,
+        "qualifying_accounts": 14,
+        "observed_result": 100.0,
+        "dimensions": {
             "opportunity_realization": 0.74,
             "account_progression": 0.81,
             "follow_up_reliability": 0.63,
@@ -47,32 +75,32 @@ def make_employee(employee_id="e0", **kwargs) -> Employee:
             "stakeholder_coverage": 0.58,
             "learning_adaptability": 0.79,
         },
-    )
+    }
     defaults.update(kwargs)
     return Employee(employee_id=employee_id, **defaults)
 
 
 def workflow_first(**kwargs) -> StrategyGenome:
-    defaults = dict(
-        strategy_id="workflow-first-2.3",
-        name="Workflow-first follow-up",
-        varies=["stakeholder", "timing", "approved_content_sequence"],
-        sequence=["Contact office operations", "Confirm the blocking workflow",
+    defaults = {
+        "strategy_id": "workflow-first-2.3",
+        "name": "Workflow-first follow-up",
+        "varies": ["stakeholder", "timing", "approved_content_sequence"],
+        "sequence": ["Contact office operations", "Confirm the blocking workflow",
                   "Send the approved operational resource",
                   "Resume physician outreach after classification"],
-        eligibility=Eligibility(account_states=["stalled"], barriers=["workflow"],
+        "eligibility": Eligibility(account_states=["stalled"], barriers=["workflow"],
                                 territory_types=["integrated"],
                                 min_qualifying_accounts=10, min_tenure_days=90,
                                 forbidden_conditions=["medical_information_pending"]),
-        stakeholder="office_manager",
-        timing_window="morning",
-        follow_up_hours=48,
-        evidence=EvidenceClass.EXPERIMENTALLY_SUPPORTED,
-        lifecycle=Lifecycle.SUPPORTED,
-        expected_effect=0.14, effect_low=0.11, effect_high=0.16,
-        expected_outcome="account progression",
-        known_failure="Performs poorly when scientific questions remain unresolved",
-    )
+        "stakeholder": "office_manager",
+        "timing_window": "morning",
+        "follow_up_hours": 48,
+        "evidence": EvidenceClass.EXPERIMENTALLY_SUPPORTED,
+        "lifecycle": Lifecycle.SUPPORTED,
+        "expected_effect": 0.14, "effect_low": 0.11, "effect_high": 0.16,
+        "expected_outcome": "account progression",
+        "known_failure": "Performs poorly when scientific questions remain unresolved",
+    }
     defaults.update(kwargs)
     return StrategyGenome(**defaults)
 
@@ -477,19 +505,19 @@ class TestSelection:
 # ── Experiments ──────────────────────────────────────────────────────────
 
 def make_contract(**kwargs) -> ExperimentContract:
-    defaults = dict(
-        experiment_id="exp-1",
-        hypothesis="A secondary-stakeholder-first approach improves progression "
+    defaults = {
+        "experiment_id": "exp-1",
+        "hypothesis": "A secondary-stakeholder-first approach improves progression "
                    "in workflow-blocked accounts.",
-        what_is_known="Promising in 34 comparable workflow-blocked accounts",
-        what_is_unknown="Whether the effect transfers to this territory type",
-        primary_outcome="Account-state progression within 30 days",
-        duration_days=14,
-        variants={
+        "what_is_known": "Promising in 34 comparable workflow-blocked accounts",
+        "what_is_unknown": "Whether the effect transfers to this territory type",
+        "primary_outcome": "Account-state progression within 30 days",
+        "duration_days": 14,
+        "variants": {
             "control": workflow_first(strategy_id="control", name="Standard timing"),
             "variant_a": workflow_first(strategy_id="variant-a", name="Ops-first"),
         },
-    )
+    }
     defaults.update(kwargs)
     return ExperimentContract(**defaults)
 
@@ -576,22 +604,22 @@ class TestStopConditions:
 # ── Attribution ──────────────────────────────────────────────────────────
 
 def make_record(**kwargs) -> AttributionRecord:
-    defaults = dict(
-        outcome_id="o-1",
-        summary="Account 241 progressed",
-        from_state="engaged",
-        to_state="access-enabled",
-        contributions=[
+    defaults = {
+        "outcome_id": "o-1",
+        "summary": "Account 241 progressed",
+        "from_state": "engaged",
+        "to_state": "access-enabled",
+        "contributions": [
             Contribution("field_representative", 0.28, "ran the sequence"),
             Contribution("market_access", 0.26),
             Contribution("assigned_strategy", 0.15),
             Contribution("territory_conditions", 0.10),
         ],
-        counterfactual=Counterfactual(observed=0.61, baseline=0.29, sample=140,
+        "counterfactual": Counterfactual(observed=0.61, baseline=0.29, sample=140,
                                       confounders=["A formulary improvement"]),
-        what_mattered="Reaching the nurse manager before repeating physician outreach",
-        what_did_not_matter="The additional clinical material",
-    )
+        "what_mattered": "Reaching the nurse manager before repeating physician outreach",
+        "what_did_not_matter": "The additional clinical material",
+    }
     defaults.update(kwargs)
     return AttributionRecord(**defaults)
 
@@ -609,8 +637,8 @@ class TestAttribution:
 
     def test_remainder_is_present_when_large(self):
         record = make_record(contributions=[Contribution("field_representative", 0.2)])
-        remainder = [c for c in record.display()["contributors"]
-                     if c["actor"] == "Unexplained remainder"][0]
+        remainder = next(c for c in record.display()["contributors"]
+                         if c["actor"] == "Unexplained remainder")
         assert remainder["band"] == "present"
 
     def test_confounder_is_named_in_the_default_view(self):

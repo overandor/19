@@ -12,22 +12,26 @@ Strategy Portfolio   :meth:`AdvantageFoundry.strategy_portfolio`
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence
 
 from . import cohort as cohort_mod
 from .attribution import AttributionRecord, separate_components
 from .cohort import Cohort, Employee, match_cohort, place, score_employee
-from .diffusion import (ContextResult, assess_decay, assess_portability,
-                        assess_repeatability, plan_diffusion)
+from .diffusion import (
+    ContextResult,
+    assess_decay,
+    assess_portability,
+    assess_repeatability,
+    plan_diffusion,
+)
 from .experiments import ExperimentContract, check_stop
 from .genome import StrategyGenome
 from .governance import manager_safe
-from .portfolio import (Assignment, AllocationInputs, EXPERIMENTAL, allocate,
-                        select)
+from .portfolio import EXPERIMENTAL, AllocationInputs, Assignment, allocate, select
 
 #: Human-readable labels for the competitive score dimensions.
-DIMENSION_LABELS: Dict[str, str] = {
+DIMENSION_LABELS: dict[str, str] = {
     "opportunity_realization": "Opportunity realization",
     "account_progression": "Account progression",
     "follow_up_reliability": "Follow-up reliability",
@@ -47,11 +51,11 @@ NOT_EMPLOYEE_CORRECTABLE = frozenset({"opportunity_realization"})
 class AdvantageFoundry:
     """In-memory reference implementation of the five-screen engine."""
 
-    population: List[Employee] = field(default_factory=list)
-    strategies: List[StrategyGenome] = field(default_factory=list)
-    contracts: Dict[str, ExperimentContract] = field(default_factory=dict)
-    outcomes: Dict[str, AttributionRecord] = field(default_factory=dict)
-    results: Dict[str, List[ContextResult]] = field(default_factory=dict)
+    population: list[Employee] = field(default_factory=list)
+    strategies: list[StrategyGenome] = field(default_factory=list)
+    contracts: dict[str, ExperimentContract] = field(default_factory=dict)
+    outcomes: dict[str, AttributionRecord] = field(default_factory=dict)
+    results: dict[str, list[ContextResult]] = field(default_factory=dict)
 
     # ── Lookup ───────────────────────────────────────────────────────────
 
@@ -66,7 +70,7 @@ class AdvantageFoundry:
 
     # ── Screen 1: My Edge ────────────────────────────────────────────────
 
-    def my_edge(self, employee_id: str, context: Optional[Dict] = None) -> Dict:
+    def my_edge(self, employee_id: str, context: dict | None = None) -> dict:
         subject = self.employee(employee_id)
         peers = self._cohort(subject)
         position = place(subject, peers)
@@ -116,7 +120,7 @@ class AdvantageFoundry:
 
     # ── Screen 2: Today ──────────────────────────────────────────────────
 
-    def today(self, employee_id: str, context: Dict) -> Dict:
+    def today(self, employee_id: str, context: dict) -> dict:
         subject = self.employee(employee_id)
         peers = self._cohort(subject)
         score = score_employee(subject, peers)
@@ -157,7 +161,7 @@ class AdvantageFoundry:
         }
 
     @staticmethod
-    def _row(assignment: Assignment) -> Dict:
+    def _row(assignment: Assignment) -> dict:
         row = assignment.to_dict()
         row["text"] = assignment.strategy_name
         row["experimental"] = assignment.klass == EXPERIMENTAL
@@ -166,7 +170,7 @@ class AdvantageFoundry:
     # ── Screen 3: Experiment ─────────────────────────────────────────────
 
     def experiment(self, experiment_id: str, *, day_index: int = 0,
-                   telemetry: Optional[Dict] = None) -> Dict:
+                   telemetry: dict | None = None) -> dict:
         contract = self.contracts[experiment_id]
         variant = next(name for name in sorted(contract.variants) if name != "control")
         genome = contract.variants[variant]
@@ -200,7 +204,7 @@ class AdvantageFoundry:
 
     # ── Screen 4: Why It Worked ──────────────────────────────────────────
 
-    def why_it_worked(self, outcome_id: str, *, similar_accounts: int = 0) -> Dict:
+    def why_it_worked(self, outcome_id: str, *, similar_accounts: int = 0) -> dict:
         record = self.outcomes[outcome_id]
         payload = record.display()
         payload["next_move"] = (
@@ -214,9 +218,9 @@ class AdvantageFoundry:
 
     # ── Screen 5: Strategy Portfolio (manager) ───────────────────────────
 
-    def strategy_portfolio(self, *, candidate_contexts: Sequence[str] = ()) -> Dict:
-        rows: List[Dict] = []
-        open_questions: List[str] = []
+    def strategy_portfolio(self, *, candidate_contexts: Sequence[str] = ()) -> dict:
+        rows: list[dict] = []
+        open_questions: list[str] = []
 
         for genome in self.strategies:
             results = self.results.get(genome.strategy_id, [])
@@ -259,4 +263,4 @@ class AdvantageFoundry:
         return manager_safe(payload)
 
 
-__all__ = ["AdvantageFoundry", "DIMENSION_LABELS", "cohort_mod"]
+__all__ = ["DIMENSION_LABELS", "AdvantageFoundry", "cohort_mod"]

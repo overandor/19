@@ -9,9 +9,9 @@ recombine supported components into a new challenger without inventing anything.
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Sequence
 
 from .compliance import check_variation
 
@@ -32,7 +32,7 @@ class EvidenceClass(str, Enum):
     def rank(self) -> int:
         return _EVIDENCE_ORDER.index(self)
 
-    def at_least(self, other: "EvidenceClass") -> bool:
+    def at_least(self, other: EvidenceClass) -> bool:
         return self.rank >= other.rank
 
     @property
@@ -66,7 +66,7 @@ class Lifecycle(str, Enum):
 
 # A strategy may only advance one step at a time. It may be retired from
 # anywhere — including mid-trial, which is what makes experiments reversible.
-_TRANSITIONS: Dict[Lifecycle, set] = {
+_TRANSITIONS: dict[Lifecycle, set] = {
     Lifecycle.PROPOSED:      {Lifecycle.SIMULATED, Lifecycle.RETIRED},
     Lifecycle.SIMULATED:     {Lifecycle.SHADOW_TESTED, Lifecycle.RETIRED},
     Lifecycle.SHADOW_TESTED: {Lifecycle.LIMITED_TRIAL, Lifecycle.RETIRED},
@@ -105,15 +105,15 @@ class Eligibility:
     must not be used is never merely a low-scoring option.
     """
 
-    account_states: List[str]       = field(default_factory=list)
-    barriers: List[str]             = field(default_factory=list)
-    territory_types: List[str]      = field(default_factory=list)
+    account_states: list[str]       = field(default_factory=list)
+    barriers: list[str]             = field(default_factory=list)
+    territory_types: list[str]      = field(default_factory=list)
     min_qualifying_accounts: int    = 0
     min_tenure_days: int            = 0
-    forbidden_account_states: List[str] = field(default_factory=list)
-    forbidden_conditions: List[str]     = field(default_factory=list)
+    forbidden_account_states: list[str] = field(default_factory=list)
+    forbidden_conditions: list[str]     = field(default_factory=list)
 
-    def excludes(self, context: Dict) -> Optional[str]:
+    def excludes(self, context: dict) -> str | None:
         """Return a human-readable exclusion reason, or ``None`` if eligible."""
         state = context.get("account_state")
         if state and state in self.forbidden_account_states:
@@ -152,16 +152,16 @@ class StrategyGenome:
 
     strategy_id: str
     name: str
-    varies: List[str]                                   # compliance dimensions
-    sequence: List[str]                                 # the literal steps
+    varies: list[str]                                   # compliance dimensions
+    sequence: list[str]                                 # the literal steps
     eligibility: Eligibility = field(default_factory=Eligibility)
-    stakeholder: Optional[str] = None
-    channel: Optional[str] = None
-    timing_window: Optional[str] = None
-    follow_up_hours: Optional[int] = None
-    content: Optional[str] = None
-    escalation_rule: Optional[str] = None
-    stopping_condition: Optional[str] = None
+    stakeholder: str | None = None
+    channel: str | None = None
+    timing_window: str | None = None
+    follow_up_hours: int | None = None
+    content: str | None = None
+    escalation_rule: str | None = None
+    stopping_condition: str | None = None
     expected_outcome: str = ""
     evidence: EvidenceClass = EvidenceClass.UNRESOLVED
     lifecycle: Lifecycle = Lifecycle.PROPOSED
@@ -169,9 +169,9 @@ class StrategyGenome:
     effect_low: float = 0.0                             # lower credible bound
     effect_high: float = 0.0
     execution_cost_minutes: int = 30
-    known_failure: Optional[str] = None
+    known_failure: str | None = None
     risk: str = "low"                                   # low | moderate
-    parent_ids: List[str] = field(default_factory=list)  # for recombined challengers
+    parent_ids: list[str] = field(default_factory=list)  # for recombined challengers
     created_at: int = field(default_factory=lambda: int(time.time()))
 
     def __post_init__(self) -> None:
@@ -184,7 +184,7 @@ class StrategyGenome:
 
     # ── Matching ─────────────────────────────────────────────────────────
 
-    def fit(self, context: Dict) -> float:
+    def fit(self, context: dict) -> float:
         """Score 0.0-1.0 for how well this strategy suits a context.
 
         Returns 0.0 for an excluded context — callers should check
@@ -213,7 +213,7 @@ class StrategyGenome:
 
     # ── Evolution ────────────────────────────────────────────────────────
 
-    def components(self) -> Dict[str, object]:
+    def components(self) -> dict[str, object]:
         """Decompose into the reusable parts a challenger can inherit."""
         return {
             "stakeholder": self.stakeholder,
@@ -225,7 +225,7 @@ class StrategyGenome:
             "escalation_rule": self.escalation_rule,
         }
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         data = asdict(self)
         data["evidence"] = self.evidence.value
         data["lifecycle"] = self.lifecycle.value
@@ -234,7 +234,7 @@ class StrategyGenome:
 
 def recombine(
     parents: Sequence[StrategyGenome],
-    take: Dict[str, str],
+    take: dict[str, str],
     *,
     strategy_id: str,
     name: str,
@@ -262,7 +262,7 @@ def recombine(
                 "may only be inherited from strategies with at least probable contribution"
             )
 
-    child_parts: Dict[str, object] = {}
+    child_parts: dict[str, object] = {}
     for component, parent_id in take.items():
         parent_components = by_id[parent_id].components()
         if component not in parent_components:
@@ -277,7 +277,7 @@ def recombine(
     # The child is only assignable where *every* parent was assignable. Inheriting
     # the intersection of use conditions keeps a recombined strategy from wandering
     # into contexts none of its components were ever measured in.
-    def _intersect(attr: str) -> List[str]:
+    def _intersect(attr: str) -> list[str]:
         declared = [set(getattr(p.eligibility, attr)) for p in parents
                     if getattr(p.eligibility, attr)]
         if not declared:

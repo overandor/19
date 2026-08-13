@@ -9,9 +9,10 @@ approved work is organized*. It may not experiment with medical truth.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Iterable, List, Sequence
+from itertools import pairwise
 
 
 class Dimension(str, Enum):
@@ -58,7 +59,7 @@ IMMUTABLE: frozenset = frozenset(set(Dimension) - MUTABLE)
 @dataclass
 class ComplianceVerdict:
     allowed: bool
-    violations: List[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
     reason: str = ""
 
     def __bool__(self) -> bool:  # `if verdict:` reads naturally at call sites
@@ -76,8 +77,8 @@ def check_variation(dimensions: Iterable[str]) -> ComplianceVerdict:
     has never heard of has not been reviewed, and unreviewed variation in a
     regulated channel is exactly the failure mode this gate exists to prevent.
     """
-    violations: List[str] = []
-    unknown: List[str] = []
+    violations: list[str] = []
+    unknown: list[str] = []
 
     for raw in dimensions:
         try:
@@ -119,23 +120,23 @@ class GamingFlag:
     suppress_from_learning: bool = True
 
 
-def detect_gaming(activities: Sequence[Dict]) -> List[GamingFlag]:
+def detect_gaming(activities: Sequence[dict]) -> list[GamingFlag]:
     """Inspect logged activity for patterns that corrupt the evidence base.
 
     Each activity is a dict with at least ``account_id``, ``kind``,
     ``occurred_at`` and ``logged_at`` (epoch seconds), and optionally
     ``progressed`` (bool) and ``stage_delta`` (int).
     """
-    flags: List[GamingFlag] = []
+    flags: list[GamingFlag] = []
 
     # Duplicate engagements: same account, same kind, within five minutes.
-    seen: Dict[tuple, List[int]] = {}
+    seen: dict[tuple, list[int]] = {}
     for act in activities:
         key = (act.get("account_id"), act.get("kind"))
         seen.setdefault(key, []).append(int(act.get("occurred_at", 0)))
     for (account_id, kind), stamps in seen.items():
         stamps.sort()
-        for earlier, later in zip(stamps, stamps[1:]):
+        for earlier, later in pairwise(stamps):
             if later - earlier < 300:
                 flags.append(GamingFlag(
                     "duplicate_engagement",
@@ -153,7 +154,7 @@ def detect_gaming(activities: Sequence[Dict]) -> List[GamingFlag]:
             ))
 
     # Activity theater: high volume on an account with no state movement at all.
-    per_account: Dict[str, List[Dict]] = {}
+    per_account: dict[str, list[dict]] = {}
     for act in activities:
         per_account.setdefault(str(act.get("account_id")), []).append(act)
     for account_id, acts in per_account.items():
@@ -167,7 +168,7 @@ def detect_gaming(activities: Sequence[Dict]) -> List[GamingFlag]:
     for account_id, acts in per_account.items():
         deltas = [int(a.get("stage_delta", 0)) for a in sorted(
             acts, key=lambda a: int(a.get("occurred_at", 0)))]
-        for back, forward in zip(deltas, deltas[1:]):
+        for back, forward in pairwise(deltas):
             if back < 0 < forward:
                 flags.append(GamingFlag(
                     "stage_oscillation",

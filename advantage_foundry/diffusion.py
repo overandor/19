@@ -8,9 +8,9 @@ produced the finding in the first place.
 from __future__ import annotations
 
 import statistics
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Sequence
 
 from .genome import EvidenceClass, StrategyGenome
 
@@ -35,19 +35,19 @@ class ContextResult:
     context_key: str                 # e.g. "integrated_system:workflow_blocked"
     lift: float                      # points of progression vs matched comparison
     sample: int
-    representative_id: Optional[str] = None
-    territory_id: Optional[str] = None
+    representative_id: str | None = None
+    territory_id: str | None = None
     period: int = 0                  # ordinal period, for decay checks
 
 
 @dataclass
 class PortabilityAssessment:
     portability: Portability
-    strong_fit: List[str] = field(default_factory=list)
-    weak_fit: List[str] = field(default_factory=list)
-    untested: List[str] = field(default_factory=list)
+    strong_fit: list[str] = field(default_factory=list)
+    weak_fit: list[str] = field(default_factory=list)
+    untested: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         data = asdict(self)
         data["portability"] = self.portability.value
         return data
@@ -62,7 +62,7 @@ def assess_portability(
     all_contexts: Sequence[str] = (),
 ) -> PortabilityAssessment:
     """Classify where a strategy replicates, from measured results per context."""
-    by_context: Dict[str, List[ContextResult]] = {}
+    by_context: dict[str, list[ContextResult]] = {}
     for result in results:
         by_context.setdefault(result.context_key, []).append(result)
 
@@ -104,11 +104,11 @@ class Repeatability:
     method_dependent: str
     expected_durability: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return asdict(self)
 
 
-def _dependence(groups: Dict[str, List[float]]) -> str:
+def _dependence(groups: dict[str, list[float]]) -> str:
     """How much of the effect rides on which group you happen to be in."""
     means = [statistics.fmean(v) for v in groups.values() if v]
     if len(means) < 2:
@@ -123,8 +123,8 @@ def _dependence(groups: Dict[str, List[float]]) -> str:
 
 def assess_repeatability(results: Sequence[ContextResult]) -> Repeatability:
     """Separate method quality from a strong employee, an easy territory, and luck."""
-    by_rep: Dict[str, List[float]] = {}
-    by_territory: Dict[str, List[float]] = {}
+    by_rep: dict[str, list[float]] = {}
+    by_territory: dict[str, list[float]] = {}
     for result in results:
         if result.representative_id:
             by_rep.setdefault(result.representative_id, []).append(result.lift)
@@ -195,10 +195,10 @@ def assess_decay(results: Sequence[ContextResult]) -> Decay:
 class DiffusionPlan:
     decision: str                    # scale | continue | hold | retire
     rationale: str
-    eligible_contexts: List[str] = field(default_factory=list)
+    eligible_contexts: list[str] = field(default_factory=list)
     expansion_cap: int = 0           # how many territories in the next wave
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return asdict(self)
 
 

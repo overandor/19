@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import hashlib
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional, Sequence
 
 from .compliance import enforce
 from .genome import EvidenceClass, Lifecycle, StrategyGenome
@@ -30,7 +30,7 @@ BASE_GUARDRAILS = (
 class StopCondition:
     name: str
     description: str
-    threshold: Optional[float] = None
+    threshold: float | None = None
 
 
 @dataclass
@@ -41,14 +41,14 @@ class ExperimentContract:
     what_is_unknown: str
     primary_outcome: str
     duration_days: int
-    variants: Dict[str, StrategyGenome]              # variant name -> strategy
-    secondary_outcomes: List[str] = field(default_factory=list)
+    variants: dict[str, StrategyGenome]              # variant name -> strategy
+    secondary_outcomes: list[str] = field(default_factory=list)
     min_qualifying_accounts: int = 10
-    excluded_conditions: List[str] = field(default_factory=lambda: [
+    excluded_conditions: list[str] = field(default_factory=lambda: [
         "active_medical_escalation", "conflicting_local_restriction"])
     exclude_onboarding: bool = True
-    guardrails: List[str] = field(default_factory=lambda: list(BASE_GUARDRAILS))
-    stop_conditions: List[StopCondition] = field(default_factory=lambda: [
+    guardrails: list[str] = field(default_factory=lambda: list(BASE_GUARDRAILS))
+    stop_conditions: list[StopCondition] = field(default_factory=lambda: [
         StopCondition("compliance_exception",
                       "Any compliance exception in a participating territory"),
         StopCondition("negative_outcome",
@@ -79,7 +79,7 @@ class ExperimentContract:
 
     # ── Eligibility ──────────────────────────────────────────────────────
 
-    def excludes(self, context: Dict) -> Optional[str]:
+    def excludes(self, context: dict) -> str | None:
         """Why this employee/account is not eligible, or ``None``."""
         if self.exclude_onboarding and int(context.get("tenure_days", 0)) < 90:
             return "new hires are excluded from experiments"
@@ -94,7 +94,7 @@ class ExperimentContract:
             return "employee has opted out of experiments"
         return None
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         data = asdict(self)
         data["variants"] = {name: genome.to_dict() for name, genome in self.variants.items()}
         return data
@@ -102,8 +102,8 @@ class ExperimentContract:
 
 def allocate_variants(
     contract: ExperimentContract,
-    candidates: Sequence[Dict],
-) -> Dict[str, str]:
+    candidates: Sequence[dict],
+) -> dict[str, str]:
     """Assign eligible participants to control or a variant.
 
     Allocation is deterministic in ``(experiment_id, employee_id)`` so a
@@ -115,7 +115,7 @@ def allocate_variants(
     silently placed in control, which would poison the comparison group.
     """
     arms = sorted(contract.variants)
-    allocation: Dict[str, str] = {}
+    allocation: dict[str, str] = {}
     for candidate in candidates:
         employee_id = str(candidate.get("employee_id"))
         if contract.excludes(candidate):
@@ -129,11 +129,11 @@ def allocate_variants(
 @dataclass
 class StopDecision:
     should_stop: bool
-    condition: Optional[str] = None
+    condition: str | None = None
     message: str = ""
 
 
-def check_stop(contract: ExperimentContract, telemetry: Dict) -> StopDecision:
+def check_stop(contract: ExperimentContract, telemetry: dict) -> StopDecision:
     """Evaluate stop conditions against running telemetry.
 
     ``telemetry`` may carry ``compliance_exceptions`` (int),

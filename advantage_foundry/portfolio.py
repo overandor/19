@@ -12,17 +12,16 @@ Two rules govern this module:
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
 
 from .genome import EvidenceClass, Lifecycle, StrategyGenome
-
 
 PROVEN       = "proven"
 PERSONALIZED = "personalized"
 EXPERIMENTAL = "experimental"
 
-BASE_MIX: Dict[str, float] = {PROVEN: 0.60, PERSONALIZED: 0.25, EXPERIMENTAL: 0.15}
+BASE_MIX: dict[str, float] = {PROVEN: 0.60, PERSONALIZED: 0.25, EXPERIMENTAL: 0.15}
 MAX_EXPERIMENTAL = 0.25
 
 #: A challenger's lower credible bound must reach this fraction of the best
@@ -38,10 +37,10 @@ class Mix:
     experimental: float
     reason: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return asdict(self)
 
-    def as_percentages(self) -> Tuple[int, int, int]:
+    def as_percentages(self) -> tuple[int, int, int]:
         return (round(self.proven * 100), round(self.personalized * 100),
                 round(self.experimental * 100))
 
@@ -96,7 +95,7 @@ def _mix(experimental: float, reason: str) -> Mix:
                experimental=experimental, reason=reason)
 
 
-def slots(mix: Mix, total_items: int = 5) -> Dict[str, int]:
+def slots(mix: Mix, total_items: int = 5) -> dict[str, int]:
     """Turn a mix into whole assignment slots for a day of at most five items."""
     raw = {k: v * total_items for k, v in
            ((PROVEN, mix.proven), (PERSONALIZED, mix.personalized),
@@ -131,12 +130,12 @@ class Assignment:
     strategy_name: str
     klass: str                               # proven | personalized | experimental
     constraint_addressed: str
-    account_ref: Optional[str]
-    sequence: List[str]
+    account_ref: str | None
+    sequence: list[str]
     why: str
     evidence: EvidenceClass
     effort_minutes: int
-    expected_effect: Tuple[float, float]     # band, never a point
+    expected_effect: tuple[float, float]     # band, never a point
     evaluation_days: int
     risk: str
     reversible: bool = True
@@ -145,10 +144,10 @@ class Assignment:
     #: consumers cannot claim they did not know.
     not_for_evaluation: bool = True
     assigned_at: int = field(default_factory=lambda: int(time.time()))
-    actions: Tuple[str, ...] = ("complete", "schedule", "modify", "replace",
+    actions: tuple[str, ...] = ("complete", "schedule", "modify", "replace",
                                 "decline", "data_wrong")
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         data = asdict(self)
         data["evidence"] = self.evidence.value
         return data
@@ -169,7 +168,7 @@ def classify(genome: StrategyGenome) -> str:
 
 def within_acceptable_band(
     challenger: StrategyGenome,
-    best_proven: Optional[StrategyGenome],
+    best_proven: StrategyGenome | None,
     *,
     ratio: float = MIN_EXPECTED_RATIO,
 ) -> bool:
@@ -189,15 +188,15 @@ def within_acceptable_band(
 
 def select(
     genomes: Sequence[StrategyGenome],
-    context: Dict,
+    context: dict,
     mix: Mix,
     *,
     employee_id: str,
     constraint: str,
     total_items: int = 5,
-) -> List[Assignment]:
+) -> list[Assignment]:
     """Pick today's assignments: eligible, compliant, and lane-balanced."""
-    eligible: List[Tuple[StrategyGenome, float]] = []
+    eligible: list[tuple[StrategyGenome, float]] = []
     for genome in genomes:
         if genome.lifecycle is Lifecycle.RETIRED:
             continue
@@ -207,7 +206,7 @@ def select(
         if fit > 0:
             eligible.append((genome, fit))
 
-    lanes: Dict[str, List[Tuple[StrategyGenome, float]]] = {
+    lanes: dict[str, list[tuple[StrategyGenome, float]]] = {
         PROVEN: [], PERSONALIZED: [], EXPERIMENTAL: []}
     for genome, fit in eligible:
         lanes[classify(genome)].append((genome, fit))
@@ -221,7 +220,7 @@ def select(
     ]
 
     wanted = slots(mix, total_items)
-    assignments: List[Assignment] = []
+    assignments: list[Assignment] = []
     for lane_name in (PROVEN, PERSONALIZED, EXPERIMENTAL):
         for genome, fit in lanes[lane_name][:wanted[lane_name]]:
             assignments.append(_build(genome, lane_name, fit, context,
@@ -248,7 +247,7 @@ def _build(
     genome: StrategyGenome,
     lane: str,
     fit: float,
-    context: Dict,
+    context: dict,
     *,
     employee_id: str,
     constraint: str,
@@ -274,7 +273,7 @@ def _build(
     )
 
 
-def _why(genome: StrategyGenome, lane: str, context: Dict) -> str:
+def _why(genome: StrategyGenome, lane: str, context: dict) -> str:
     barrier = context.get("barrier", "the current barrier")
     if lane == PROVEN:
         return (f"Comparable accounts blocked by {barrier} progressed more often "

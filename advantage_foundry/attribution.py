@@ -13,9 +13,9 @@ Two commitments are load-bearing here:
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Sequence
 
 from .genome import EvidenceClass
 
@@ -62,7 +62,7 @@ class Counterfactual:
     observed: float
     baseline: float              # matched comparison, not last quarter's number
     sample: int
-    confounders: List[str] = field(default_factory=list)
+    confounders: list[str] = field(default_factory=list)
 
     @property
     def lift_pp(self) -> float:
@@ -83,7 +83,7 @@ class Counterfactual:
         return {2: "high", 1: "moderate"}.get(level, "low")
 
     @property
-    def primary_confounder(self) -> Optional[str]:
+    def primary_confounder(self) -> str | None:
         return self.confounders[0] if self.confounders else None
 
 
@@ -93,10 +93,10 @@ class AttributionRecord:
     summary: str
     from_state: str
     to_state: str
-    contributions: List[Contribution]
+    contributions: list[Contribution]
     counterfactual: Counterfactual
     what_mattered: str = ""
-    what_did_not_matter: Optional[str] = None
+    what_did_not_matter: str | None = None
     created_at: int = field(default_factory=lambda: int(time.time()))
 
     # ── Evidence ─────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ class AttributionRecord:
 
     # ── Rendering ────────────────────────────────────────────────────────
 
-    def display(self) -> Dict:
+    def display(self) -> dict:
         """The default view. Bands and sentences — no shares, no decimals."""
         contributors = [
             {"actor": c.actor, "band": c.band.value, "note": c.note}
@@ -168,7 +168,7 @@ class AttributionRecord:
             "audit_available": True,
         }
 
-    def audit(self) -> Dict:
+    def audit(self) -> dict:
         """Precise model output, explicitly labelled as such."""
         return {
             "outcome_id": self.outcome_id,
@@ -199,7 +199,7 @@ LEDGER_ACTORS = (
 )
 
 
-def credit_ledger(record: AttributionRecord) -> Dict[str, str]:
+def credit_ledger(record: AttributionRecord) -> dict[str, str]:
     """Roll an outcome up into the standing contributor categories.
 
     Actors with no measured contribution are listed as ``none detected`` rather
@@ -216,14 +216,14 @@ def credit_ledger(record: AttributionRecord) -> Dict[str, str]:
     return ledger
 
 
-def separate_components(records: Sequence[AttributionRecord]) -> Dict[str, str]:
+def separate_components(records: Sequence[AttributionRecord]) -> dict[str, str]:
     """The manager's seven-way separation, aggregated across outcomes.
 
     This is what stops a manager promoting the person with the easiest territory:
     employee skill and territory conditions are never allowed to collapse into a
     single number.
     """
-    totals: Dict[str, float] = {actor: 0.0 for actor in LEDGER_ACTORS}
+    totals: dict[str, float] = {actor: 0.0 for actor in LEDGER_ACTORS}
     for record in records:
         for contribution in record.contributions:
             if contribution.actor in totals:

@@ -13,10 +13,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from advantage_foundry import (AdvantageFoundry, AttributionRecord, Contribution,
-                               ContextResult, Counterfactual, Eligibility, Employee,
-                               EvidenceClass, ExperimentContract, Lifecycle,
-                               StrategyGenome, Territory)
+from advantage_foundry import (
+    AdvantageFoundry,
+    AttributionRecord,
+    ContextResult,
+    Contribution,
+    Counterfactual,
+    Eligibility,
+    Employee,
+    EvidenceClass,
+    ExperimentContract,
+    Lifecycle,
+    StrategyGenome,
+    Territory,
+)
 
 DIMENSIONS = {
     "opportunity_realization": 0.74,
@@ -30,9 +40,9 @@ DIMENSIONS = {
 
 
 def territory(**kwargs) -> Territory:
-    base = dict(territory_id="T-integrated", product="alpha", opportunity=1.0,
-                maturity=1.0, resources=1.0, access_difficulty=1.2,
-                territory_type="integrated", restrictions=[])
+    base = {"territory_id": "T-integrated", "product": "alpha", "opportunity": 1.0,
+            "maturity": 1.0, "resources": 1.0, "access_difficulty": 1.2,
+            "territory_type": "integrated", "restrictions": []}
     base.update(kwargs)
     return Territory(**base)
 

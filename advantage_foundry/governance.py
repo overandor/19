@@ -7,7 +7,7 @@ These are functions, not guidelines, so the violation is a test failure.
 """
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Sequence
+from collections.abc import Iterable, Sequence
 
 #: Surfaces where experimental participation may never appear.
 EVALUATIVE_SURFACES = frozenset({
@@ -26,7 +26,7 @@ class GovernanceViolation(Exception):
     """Raised when a guarded constraint is about to be broken."""
 
 
-def assert_not_evaluative(surface: str, records: Sequence[Dict]) -> None:
+def assert_not_evaluative(surface: str, records: Sequence[dict]) -> None:
     """Block experimental assignments from reaching an evaluative surface."""
     if surface not in EVALUATIVE_SURFACES:
         return
@@ -40,13 +40,13 @@ def assert_not_evaluative(surface: str, records: Sequence[Dict]) -> None:
         )
 
 
-def strip_experimental(records: Iterable[Dict]) -> List[Dict]:
+def strip_experimental(records: Iterable[dict]) -> list[dict]:
     """Remove experimental participation before any evaluative aggregation."""
     return [r for r in records
             if r.get("klass") != "experimental" and not r.get("not_for_evaluation")]
 
 
-def manager_safe(payload: Dict) -> Dict:
+def manager_safe(payload: dict) -> dict:
     """Return a manager-facing payload with surveillance fields removed.
 
     Recurses, because the leak is always a nested field somebody added later.
@@ -62,7 +62,7 @@ def manager_safe(payload: Dict) -> Dict:
     return clean(payload)
 
 
-def override_is_signal(override: Dict) -> Dict:
+def override_is_signal(override: dict) -> dict:
     """Convert an employee override into a learning record.
 
     An override is data about the recommendation, never a fact about the person.

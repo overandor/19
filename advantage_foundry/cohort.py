@@ -8,8 +8,8 @@ supplied before it is compared to anyone at all.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional, Sequence, Tuple
 
 
 @dataclass
@@ -34,7 +34,7 @@ class Territory:
     resources: float = 1.0
     access_difficulty: float = 1.0
     territory_type: str = "mixed"          # urban | rural | integrated | independent | mixed
-    restrictions: List[str] = field(default_factory=list)
+    restrictions: list[str] = field(default_factory=list)
 
     @property
     def advantage_multiplier(self) -> float:
@@ -55,7 +55,7 @@ class Employee:
     qualifying_accounts: int = 0
     experiment_opt_in: bool = True
     observed_result: float = 0.0                    # raw commercial/progression output
-    dimensions: Dict[str, float] = field(default_factory=dict)
+    dimensions: dict[str, float] = field(default_factory=dict)
 
     @property
     def adjusted_result(self) -> float:
@@ -77,8 +77,8 @@ class Employee:
 class Cohort:
     """A set of genuinely comparable peers, plus the receipt explaining why."""
 
-    members: List[Employee]
-    basis: List[str]
+    members: list[Employee]
+    basis: list[str]
     tolerance: float
     sufficient: bool
 
@@ -155,16 +155,16 @@ def _within(subject: Employee, peer: Employee, tolerance: float) -> bool:
     return True
 
 
-def percentile(value: float, comparison: Sequence[float]) -> Optional[int]:
+def percentile(value: float, comparison: Sequence[float]) -> int | None:
     """Percentile of ``value`` within ``comparison``. ``None`` if empty."""
     if not comparison:
         return None
     below = sum(1 for other in comparison if other < value)
     ties = sum(1 for other in comparison if other == value)
-    return int(round(100 * (below + 0.5 * ties) / len(comparison)))
+    return round(100 * (below + 0.5 * ties) / len(comparison))
 
 
-def place(subject: Employee, cohort: Cohort) -> Dict:
+def place(subject: Employee, cohort: Cohort) -> dict:
     """Place an employee against their cohort, raw and adjusted.
 
     Both numbers are returned together, always. The gap between them is the
@@ -203,7 +203,7 @@ def place(subject: Employee, cohort: Cohort) -> Dict:
 
 # ── Multidimensional competitive score ───────────────────────────────────
 
-SCORE_DIMENSIONS: Tuple[str, ...] = (
+SCORE_DIMENSIONS: tuple[str, ...] = (
     "opportunity_realization",
     "account_progression",
     "follow_up_reliability",
@@ -222,37 +222,37 @@ class CompetitiveScore:
     refuse: it destroys the only information that tells someone what to fix.
     """
 
-    scores: Dict[str, float]
+    scores: dict[str, float]
     #: Underlying absolute values, kept for tie-breaking. In a tightly matched
     #: cohort every percentile can land on 50, and picking the "weakest"
     #: dimension by dictionary order would hand someone an arbitrary constraint.
-    raw: Dict[str, float] = field(default_factory=dict)
+    raw: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return dict(self.scores)
 
     def _rank_key(self, dimension: str):
         return (self.scores[dimension], self.raw.get(dimension, 0.0))
 
-    def constraint(self, *, correctable: Sequence[str] = SCORE_DIMENSIONS) -> Optional[str]:
+    def constraint(self, *, correctable: Sequence[str] = SCORE_DIMENSIONS) -> str | None:
         """The weakest dimension the employee can actually act on."""
         actionable = [k for k in self.scores if k in set(correctable)]
         if not actionable:
             return None
         return min(actionable, key=self._rank_key)
 
-    def weakest(self) -> Optional[str]:
+    def weakest(self) -> str | None:
         """The weakest dimension overall, correctable or not."""
         return min(self.scores, key=self._rank_key) if self.scores else None
 
-    def strength(self) -> Optional[str]:
+    def strength(self) -> str | None:
         return max(self.scores, key=self._rank_key) if self.scores else None
 
 
 def score_employee(subject: Employee, cohort: Cohort) -> CompetitiveScore:
     """Score each dimension as a cohort percentile, not an absolute grade."""
-    scores: Dict[str, float] = {}
-    raw: Dict[str, float] = {}
+    scores: dict[str, float] = {}
+    raw: dict[str, float] = {}
     for dimension in SCORE_DIMENSIONS:
         mine = subject.dimensions.get(dimension)
         if mine is None:
@@ -265,5 +265,5 @@ def score_employee(subject: Employee, cohort: Cohort) -> CompetitiveScore:
     return CompetitiveScore(scores, raw)
 
 
-def as_dict(obj) -> Dict:
+def as_dict(obj) -> dict:
     return asdict(obj)

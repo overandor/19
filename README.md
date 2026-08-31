@@ -37,6 +37,7 @@ Build and continuously improve a governed pipeline that:
 - `speculative_signal_taxonomy/` — evolving taxonomy of candidate signal families.
 - `evidence_scorecards/` — standardized confidence and rejection scorecards.
 - `memory_credit_daemon/` — v0 metering daemon for compute-reuse receipts and a devnet/localnet-only credits token (no mainnet path).
+- `advantage_foundry/` — controlled market for organizational strategies: strategy genomes, fair peer comparison, bounded exploration, experiment contracts, causal attribution, and selective diffusion.
 
 ## Key Design Documents
 
@@ -45,6 +46,8 @@ Build and continuously improve a governed pipeline that:
 - `docs/testing_and_scoring_framework.md`
 - `docs/DISTRIBUTED_LLM_INFERENCE.md`
 - `docs/MEMORY_CREDIT_DAEMON.md`
+- `docs/ADVANTAGE_FOUNDRY.md`
+- `docs/ADVANTAGE_FOUNDRY_UI_SPEC.md`
 - `safety_policies/research_only_policy.md`
 - `.github/pull_request_template.md`
 - `improvement_proposals/schema/improvement_proposal.schema.json`

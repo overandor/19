@@ -37,6 +37,7 @@ fixed known `g`, a rational risk-neutral claimant — are listed in
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 
 class InfeasibleDeterrenceError(Exception):
@@ -216,3 +217,214 @@ def plan_audit(params: DeterrenceParams, budget: AuditBudget) -> AuditPlan:
         cost_fraction_of_credited_value=fraction,
         reason=reason,
     )
+
+
+# ── liquidity: deterrence once credits are redeemable ───────────────────────
+#
+# Everything above prices fraud in credits. That is the right unit only
+# while credits are a bookkeeping entry. Once a pool will exchange them for
+# something, the question becomes whether the pool can be drained, and the
+# answer turns on one detail that is easy to get wrong: **what the bond is
+# denominated in.**
+#
+# With a bond held in the quote asset, the credit-denominated rule above is
+# already conservative. A cheater dumping into a constant-product pool
+# suffers slippage, so they realise *less* than spot for their fraudulent
+# credits while the bond they forfeit is unaffected. Deterrence only
+# improves.
+#
+# With a bond held in credits, it inverts. The cheater's dump moves the
+# price against the credits, and the bond is priced in exactly the asset
+# they just crashed — so the collateral is worth least at the precise
+# moment it is slashed. Collateral correlated with the attack it secures is
+# a well-known way to lose money, and here it is not a modelling nicety: at
+# realistic depths it is the difference between a solvent pool and a
+# drainable one. `assess_pool_solvency` prices both cases exactly, by
+# selling the slashed bond into the post-dump pool rather than at spot.
+
+
+class BondDenomination(str, Enum):
+    QUOTE = "quote"
+    CREDITS = "credits"
+
+
+@dataclass(frozen=True)
+class Bond:
+    """Collateral at risk, and — decisively — what it is denominated in."""
+
+    amount: float
+    denomination: BondDenomination = BondDenomination.QUOTE
+
+    def __post_init__(self) -> None:
+        if self.amount < 0:
+            raise ValueError("bond amount must be non-negative")
+
+
+@dataclass(frozen=True)
+class ConstantProductPool:
+    """A constant-product pool, priced for the one question that matters:
+    how much of the quote asset can be extracted by dumping credits in."""
+
+    credit_reserve: float
+    quote_reserve: float
+    fee_fraction: float = 0.003
+
+    def __post_init__(self) -> None:
+        if self.credit_reserve <= 0 or self.quote_reserve <= 0:
+            raise ValueError("both reserves must be positive")
+        if not 0.0 <= self.fee_fraction < 1.0:
+            raise ValueError("fee_fraction must be in [0, 1)")
+
+    @property
+    def spot_price(self) -> float:
+        """Quote per credit before slippage. The optimistic number."""
+        return self.quote_reserve / self.credit_reserve
+
+    def proceeds(self, credits_in: float) -> float:
+        """Quote received for selling `credits_in`, after slippage and fee.
+
+        Bounded above by `quote_reserve` however large the input, which is
+        what caps a cheater and makes their worst case an interior k rather
+        than "as many fakes as possible".
+        """
+        if credits_in <= 0:
+            return 0.0
+        effective = credits_in * (1.0 - self.fee_fraction)
+        return self.quote_reserve * effective / (self.credit_reserve + effective)
+
+    def after_selling(self, credits_in: float) -> ConstantProductPool:
+        """The pool as it stands once `credits_in` has been dumped into it."""
+        if credits_in <= 0:
+            return self
+        effective = credits_in * (1.0 - self.fee_fraction)
+        return ConstantProductPool(
+            credit_reserve=self.credit_reserve + effective,
+            quote_reserve=self.quote_reserve - self.proceeds(credits_in),
+            fee_fraction=self.fee_fraction,
+        )
+
+    @property
+    def max_drainable_quote(self) -> float:
+        """The pool's entire quote side — the asymptote, never quite reached."""
+        return self.quote_reserve
+
+
+@dataclass(frozen=True)
+class SolvencyAssessment:
+    """Whether a pool can be drained profitably at this audit rate and bond."""
+
+    solvent: bool
+    worst_case_claims: int
+    worst_case_value_quote: float
+    required_bond_quote: float
+    bond_value_quote: float
+    audit_rate: float
+    reason: str
+
+
+def _detection(audit_rate: float, k: int) -> float:
+    return 1.0 - (1.0 - audit_rate) ** k
+
+
+def slash_value_quote(
+    pool: ConstantProductPool, bond: Bond, credits_dumped: float
+) -> float:
+    """What the forfeited bond is actually worth after the cheater's dump.
+
+    A quote-denominated bond is untouched by the dump. A credit-denominated
+    one is sold into the pool the dump has already moved, which is the
+    whole point: the collateral is priced in the asset the attack devalues.
+    """
+    if bond.denomination is BondDenomination.QUOTE:
+        return bond.amount
+    return pool.after_selling(credits_dumped).proceeds(bond.amount)
+
+
+def assess_pool_solvency(
+    pool: ConstantProductPool,
+    audit_rate: float,
+    credits_per_fraudulent_claim: float,
+    bond: Bond,
+    max_claims: int = 10_000,
+) -> SolvencyAssessment:
+    """Find the cheater's best strategy and check the bond covers it.
+
+    Scans k because the objective is not monotone: proceeds saturate at pool
+    depth while detection converges on certainty, so the maximum sits at an
+    interior k determined by depth, audit rate and per-claim gain together.
+    A closed form exists for particular fee and reserve choices and is not
+    worth the fragility — the scan is exact at every k it visits, and the
+    tail beyond the break is dominated by `(1-p)^k` decay.
+    """
+    if not 0.0 < audit_rate <= 1.0:
+        raise ValueError("audit_rate must be in (0, 1]")
+    if credits_per_fraudulent_claim <= 0:
+        raise ValueError("credits_per_fraudulent_claim must be positive")
+
+    worst_k = 1
+    worst_value = float("-inf")
+    required_bond = 0.0
+    worst_bond_value = 0.0
+
+    for k in range(1, max_claims + 1):
+        dumped = k * credits_per_fraudulent_claim
+        undetected = (1.0 - audit_rate) ** k
+        detected = _detection(audit_rate, k)
+        gross = pool.proceeds(dumped)
+        slash = slash_value_quote(pool, bond, dumped)
+
+        value = undetected * gross - detected * slash
+        if value > worst_value:
+            worst_value, worst_k, worst_bond_value = value, k, slash
+        if detected > 0:
+            required_bond = max(required_bond, undetected * gross / detected)
+        if undetected * pool.max_drainable_quote < 1e-12:
+            # Every larger k is bounded by this and strictly worse for the
+            # cheater; nothing beyond it can become the maximum.
+            break
+
+    solvent = worst_value <= 0
+    if solvent:
+        reason = (
+            f"a cheater's best strategy is {worst_k} fake claim(s), worth "
+            f"{worst_value:.4g} quote — non-positive, so draining the pool "
+            "does not pay"
+        )
+    else:
+        reason = (
+            f"{worst_k} fake claim(s) nets {worst_value:.4g} quote against a "
+            f"bond worth {worst_bond_value:.4g} when slashed. A quote-"
+            f"denominated bond of at least {required_bond:.4g} closes it; "
+            "raising the audit rate or reducing pool depth also does."
+        )
+
+    return SolvencyAssessment(
+        solvent=solvent,
+        worst_case_claims=worst_k,
+        worst_case_value_quote=worst_value,
+        required_bond_quote=required_bond,
+        bond_value_quote=worst_bond_value,
+        audit_rate=audit_rate,
+        reason=reason,
+    )
+
+
+def required_bond_for_pool(
+    pool: ConstantProductPool,
+    audit_rate: float,
+    credits_per_fraudulent_claim: float,
+    max_claims: int = 10_000,
+) -> float:
+    """The smallest *quote-denominated* bond that makes every strategy lose.
+
+    Quote-denominated on purpose: there is no credit-denominated bond that
+    is safe at every depth, because the cheater controls the price of their
+    own collateral.
+    """
+    return assess_pool_solvency(
+        pool,
+        audit_rate,
+        credits_per_fraudulent_claim,
+        Bond(0.0, BondDenomination.QUOTE),
+        max_claims=max_claims,
+    ).required_bond_quote

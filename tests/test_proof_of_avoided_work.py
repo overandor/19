@@ -672,3 +672,276 @@ class TestEndToEndDeterrence:
             f"detection probability is "
             f"{detection_probability(plan.audit_rate, 100):.2%}"
         )
+
+
+# ── liquidity: solvency once credits are redeemable ─────────────────────────
+
+class TestConstantProductPool:
+    def pool(self, credits=1_000_000.0, quote=50_000.0):
+        from proof_of_avoided_work.economics import ConstantProductPool
+
+        return ConstantProductPool(credit_reserve=credits, quote_reserve=quote)
+
+    def test_spot_price(self):
+        assert self.pool().spot_price == pytest.approx(0.05)
+
+    def test_proceeds_are_bounded_by_the_quote_reserve(self):
+        pool = self.pool()
+        assert pool.proceeds(10**15) < pool.quote_reserve, (
+            "a constant-product pool can never pay out more than it holds; "
+            "this bound is what caps a cheater"
+        )
+
+    def test_slippage_makes_a_big_sale_worth_less_per_credit(self):
+        pool = self.pool()
+        small = pool.proceeds(100) / 100
+        large = pool.proceeds(500_000) / 500_000
+        assert large < small
+
+    def test_selling_nothing_yields_nothing(self):
+        assert self.pool().proceeds(0) == 0.0
+        assert self.pool().proceeds(-5) == 0.0
+
+    def test_after_selling_moves_the_price_down(self):
+        pool = self.pool()
+        assert pool.after_selling(200_000).spot_price < pool.spot_price
+
+    def test_reserves_must_be_positive(self):
+        from proof_of_avoided_work.economics import ConstantProductPool
+
+        with pytest.raises(ValueError):
+            ConstantProductPool(credit_reserve=0, quote_reserve=1)
+
+
+class TestBondDenomination:
+    """The finding that decides whether a pool is drainable."""
+
+    def pool(self):
+        from proof_of_avoided_work.economics import ConstantProductPool
+
+        return ConstantProductPool(credit_reserve=1_000_000.0, quote_reserve=50_000.0)
+
+    def test_quote_bond_is_untouched_by_the_dump(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            slash_value_quote,
+        )
+
+        bond = Bond(1000.0, BondDenomination.QUOTE)
+        assert slash_value_quote(self.pool(), bond, credits_dumped=500_000) == 1000.0
+
+    def test_credit_bond_is_worth_less_after_the_dump(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            slash_value_quote,
+        )
+
+        pool = self.pool()
+        bond = Bond(1000.0, BondDenomination.CREDITS)
+        undisturbed = slash_value_quote(pool, bond, credits_dumped=0)
+        after_dump = slash_value_quote(pool, bond, credits_dumped=500_000)
+        assert after_dump < undisturbed, (
+            "collateral priced in the asset the attack devalues is worth least "
+            "exactly when it is slashed"
+        )
+
+    def test_same_config_is_solvent_in_quote_and_insolvent_in_credits(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            DeterrenceParams,
+            assess_pool_solvency,
+            minimum_audit_rate,
+        )
+
+        pool = self.pool()
+        gain, bond_credits = 10.0, 1000.0
+        rate = minimum_audit_rate(
+            DeterrenceParams(
+                bond_credits=bond_credits, max_gain_per_fraudulent_claim=gain
+            )
+        )
+
+        in_quote = assess_pool_solvency(
+            pool, rate, gain,
+            Bond(bond_credits * pool.spot_price, BondDenomination.QUOTE),
+        )
+        in_credits = assess_pool_solvency(
+            pool, rate, gain, Bond(bond_credits, BondDenomination.CREDITS)
+        )
+
+        assert in_quote.solvent
+        assert not in_credits.solvent, (
+            "the credit-denominated rule sizes a bond that the pool then "
+            "undermines; this is why minting refuses credit collateral"
+        )
+
+    def test_a_shallower_pool_moves_the_worst_case_off_a_single_claim(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            assess_pool_solvency,
+        )
+
+        shallow = type(self.pool())(credit_reserve=20_000.0, quote_reserve=1_000.0)
+        assessment = assess_pool_solvency(
+            shallow, 0.0099, 10.0, Bond(1000.0, BondDenomination.CREDITS)
+        )
+        assert not assessment.solvent
+        assert assessment.worst_case_claims > 1, (
+            "proceeds saturate while detection converges, so the cheater's "
+            "optimum is an interior number of fakes"
+        )
+
+    def test_required_quote_bond_closes_the_gap(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            assess_pool_solvency,
+            required_bond_for_pool,
+        )
+
+        pool = self.pool()
+        rate, gain = 0.01, 10.0
+        needed = required_bond_for_pool(pool, rate, gain)
+        assert assess_pool_solvency(
+            pool, rate, gain, Bond(needed * 1.001, BondDenomination.QUOTE)
+        ).solvent
+
+    def test_a_negative_bond_is_refused(self):
+        from proof_of_avoided_work.economics import Bond
+
+        with pytest.raises(ValueError):
+            Bond(-1.0)
+
+
+class TestMintAuthorization:
+    def _settled_engine(self, claims: int = 1):
+        from proof_of_avoided_work.audit import ReexecutionResult
+
+        engine = engine_with_oracle()
+        alice_kp = keypair("alice")
+        for i in range(claims):
+            c = commitment(f"unit-{i}")
+            engine.submit(sign_claim(c, true_output(c), 0.5, 1, alice_kp))
+        engine.run_epoch(
+            1, b"\x21" * 32, 1.0,
+            lambda cm: ReexecutionResult(true_output(cm), COLD_SECONDS),
+        )
+        return engine, str(alice_kp.pubkey())
+
+    def test_escrowed_credits_cannot_be_minted(self):
+        from proof_of_avoided_work.minting import UnverifiedCreditsError, authorize_mint
+
+        engine = engine_with_oracle()
+        alice_kp = keypair("alice")
+        c = commitment()
+        engine.submit(sign_claim(c, true_output(c), 0.5, 1, alice_kp))
+
+        with pytest.raises(UnverifiedCreditsError, match="still escrowed"):
+            authorize_mint(engine, str(alice_kp.pubkey()), network="devnet")
+
+    def test_voided_credits_cannot_be_minted(self):
+        from proof_of_avoided_work.audit import ReexecutionResult
+        from proof_of_avoided_work.minting import UnverifiedCreditsError, authorize_mint
+
+        engine = engine_with_oracle()
+        mallory = keypair("mallory")
+        engine.post_bond(str(mallory.pubkey()), 10.0)
+        c = commitment()
+        engine.submit(sign_claim(c, digest_bytes(b"fake"), 0.5, 1, mallory))
+        engine.run_epoch(
+            1, b"\x22" * 32, 1.0,
+            lambda cm: ReexecutionResult(true_output(cm), COLD_SECONDS),
+        )
+        with pytest.raises(UnverifiedCreditsError):
+            authorize_mint(engine, str(mallory.pubkey()), network="devnet")
+
+    def test_settled_credits_authorize_exactly_what_was_verified(self):
+        from proof_of_avoided_work.minting import authorize_mint
+
+        engine, pubkey = self._settled_engine(claims=3)
+        auth = authorize_mint(engine, pubkey, network="devnet")
+
+        assert auth.settled_claims == 3
+        assert auth.credits == pytest.approx(engine.settled_credits(pubkey))
+        assert auth.base_units == int(auth.credits)
+
+    def test_base_units_truncate_rather_than_round_up(self):
+        from proof_of_avoided_work.minting import MintAuthorization
+
+        auth = MintAuthorization("pk", 9.99, 1, 0, 0, "devnet")
+        assert auth.base_units == 9
+
+    def test_mainnet_requires_the_pool_configuration(self):
+        from proof_of_avoided_work.minting import PoolInsolventError, authorize_mint
+
+        engine, pubkey = self._settled_engine()
+        with pytest.raises(PoolInsolventError, match="requires the pool"):
+            authorize_mint(engine, pubkey, network="https://api.mainnet-beta.solana.com")
+
+    def test_mainnet_refuses_a_credit_denominated_bond(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            ConstantProductPool,
+        )
+        from proof_of_avoided_work.minting import UnsafeCollateralError, authorize_mint
+
+        engine, pubkey = self._settled_engine()
+        with pytest.raises(UnsafeCollateralError, match="denominated in the credits"):
+            authorize_mint(
+                engine, pubkey,
+                network="https://api.mainnet-beta.solana.com",
+                pool=ConstantProductPool(1_000_000.0, 50_000.0),
+                bond=Bond(1_000_000.0, BondDenomination.CREDITS),
+                audit_rate=0.5,
+            )
+
+    def test_mainnet_refuses_a_drainable_pool(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            ConstantProductPool,
+        )
+        from proof_of_avoided_work.minting import PoolInsolventError, authorize_mint
+
+        engine, pubkey = self._settled_engine()
+        with pytest.raises(PoolInsolventError):
+            authorize_mint(
+                engine, pubkey,
+                network="https://api.mainnet-beta.solana.com",
+                pool=ConstantProductPool(1_000.0, 100_000.0),
+                bond=Bond(0.01, BondDenomination.QUOTE),
+                audit_rate=0.001,
+                credits_per_fraudulent_claim=100.0,
+            )
+
+    def test_mainnet_allows_a_solvent_configuration(self):
+        from proof_of_avoided_work.economics import (
+            Bond,
+            BondDenomination,
+            ConstantProductPool,
+        )
+        from proof_of_avoided_work.minting import authorize_mint
+
+        engine, pubkey = self._settled_engine()
+        auth = authorize_mint(
+            engine, pubkey,
+            network="https://api.mainnet-beta.solana.com",
+            pool=ConstantProductPool(1_000_000.0, 50_000.0),
+            bond=Bond(1_000_000.0, BondDenomination.QUOTE),
+            audit_rate=0.5,
+            credits_per_fraudulent_claim=10.0,
+        )
+        assert auth.solvency is not None and auth.solvency.solvent
+        assert auth.credits > 0
+
+    def test_is_mainnet_matches_the_rpc_guard(self):
+        from proof_of_avoided_work.minting import is_mainnet
+
+        assert is_mainnet("https://api.mainnet-beta.solana.com")
+        assert not is_mainnet("https://api.devnet.solana.com")
+        assert not is_mainnet("http://127.0.0.1:8899")

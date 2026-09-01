@@ -219,3 +219,64 @@ class TestMainnetGuard:
     )
     def test_allows_devnet_and_localnet_urls(self, rpc_url):
         make_client(rpc_url)
+
+
+# ── mainnet is reachable, but only deliberately and only for verified credits ──
+
+class TestMainnetOptIn:
+    def test_mainnet_is_still_refused_by_default(self):
+        with pytest.raises(MainnetRpcBlockedError):
+            make_client("https://api.mainnet-beta.solana.com")
+
+    def test_mainnet_requires_an_explicit_opt_in(self):
+        client = make_client(
+            "https://api.mainnet-beta.solana.com", allow_mainnet=True
+        )
+        assert client is not None
+
+    def test_devnet_and_localnet_are_unaffected(self):
+        assert make_client("https://api.devnet.solana.com") is not None
+        assert make_client("http://127.0.0.1:8899") is not None
+
+
+class TestAuthorizedMinting:
+    def test_a_bare_number_is_not_an_authorization(self):
+        from memory_credit_daemon.solana_submit import (
+            UnauthorizedMintError,
+            mint_authorized_credits,
+        )
+
+        with pytest.raises(UnauthorizedMintError, match="MintAuthorization"):
+            mint_authorized_credits(
+                "https://api.devnet.solana.com",
+                Keypair(),
+                Keypair(),
+                authorization=1_000_000,
+            )
+
+    def test_zero_authorized_credits_mint_nothing(self):
+        from memory_credit_daemon.solana_submit import (
+            UnauthorizedMintError,
+            mint_authorized_credits,
+        )
+        from proof_of_avoided_work.minting import MintAuthorization
+
+        auth = MintAuthorization("pk", 0.4, 1, 0, 0, "https://api.devnet.solana.com")
+        with pytest.raises(UnauthorizedMintError, match="nothing to mint"):
+            mint_authorized_credits(
+                "https://api.devnet.solana.com", Keypair(), Keypair(), auth
+            )
+
+    def test_an_authorization_cannot_be_replayed_against_another_network(self):
+        """A solvency verdict is about one pool on one network."""
+        from memory_credit_daemon.solana_submit import (
+            UnauthorizedMintError,
+            mint_authorized_credits,
+        )
+        from proof_of_avoided_work.minting import MintAuthorization
+
+        auth = MintAuthorization("pk", 500.0, 1, 0, 0, "https://api.devnet.solana.com")
+        with pytest.raises(UnauthorizedMintError, match="re-authorize"):
+            mint_authorized_credits(
+                "https://api.mainnet-beta.solana.com", Keypair(), Keypair(), auth
+            )

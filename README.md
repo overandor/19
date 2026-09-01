@@ -38,6 +38,8 @@ Build and continuously improve a governed pipeline that:
 - `evidence_scorecards/` — standardized confidence and rejection scorecards.
 - `memory_credit_daemon/` — v0 metering daemon for compute-reuse receipts and a devnet/localnet-only credits token (no mainnet path).
 - `proof_of_avoided_work/` — makes a compute-reuse claim falsifiable: work commitments, an oracle that owns the baseline, sampled re-execution audits, and settlement that pays only what survived.
+- `memory_shell/` — a sandboxed shell that cuts an LLM server's resident memory: shared `MAP_SHARED` weights, content-addressed KV reuse under a byte budget, and tenant isolation so cache sharing is not an oracle about other people's prompts. Feeds measured costs to `proof_of_avoided_work`.
+- `packaging/` — macOS `.dmg` build script, installer, and launchd agent for `memory_shell`.
 
 ## Key Design Documents
 
@@ -47,6 +49,7 @@ Build and continuously improve a governed pipeline that:
 - `docs/DISTRIBUTED_LLM_INFERENCE.md`
 - `docs/MEMORY_CREDIT_DAEMON.md`
 - `docs/PROOF_OF_AVOIDED_WORK.md`
+- `docs/MEMORY_SHELL.md`
 - `safety_policies/research_only_policy.md`
 - `.github/pull_request_template.md`
 - `improvement_proposals/schema/improvement_proposal.schema.json`

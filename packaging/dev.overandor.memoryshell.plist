@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent for memory_shell.
+
+  A LaunchAgent, not a LaunchDaemon: it runs as the logged-in user, so the
+  cache lives inside that user's session and is not shared across accounts
+  on the machine. Sharing state across user accounts would be exactly the
+  cross-tenant leak isolation.py exists to prevent, so the choice is
+  deliberate rather than incidental.
+
+  RunAtLoad with KeepAlive/SuccessfulExit=false restarts it if it crashes
+  but not if it exits cleanly, so `launchctl unload` stays effective.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>dev.overandor.memoryshell</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Applications/MemoryShell.app/Contents/MacOS/memoryshell</string>
+        <string>serve</string>
+        <string>--budget-mib</string>
+        <string>2048</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- Identity is set here, on the server side, and never taken from
+             a client request. See memory_shell/remote.py. -->
+        <key>MEMORY_SHELL_TENANT</key>
+        <string>local</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Adaptive</string>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/memoryshell.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/memoryshell.err.log</string>
+</dict>
+</plist>

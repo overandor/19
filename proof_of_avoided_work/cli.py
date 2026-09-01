@@ -14,7 +14,6 @@ import argparse
 import hashlib
 import random
 import sys
-from typing import Dict, List
 
 from solders.keypair import Keypair
 
@@ -112,15 +111,15 @@ def cmd_simulate(args: argparse.Namespace) -> int:
     for kp in honest + cheats + inflaters:
         engine.post_bond(str(kp.pubkey()), args.bond)
 
-    submitted: Dict[str, int] = {"honest": 0, "fraudulent": 0, "inflating": 0}
-    rejected: List[str] = []
+    submitted: dict[str, int] = {"honest": 0, "fraudulent": 0, "inflating": 0}
+    rejected: list[str] = []
 
     for i in range(args.claims):
         actors = honest + cheats + inflaters
         actor = actors[i % len(actors)]
         cheating = actor in cheats
         inflating = actor in inflaters
-        payload = f"unit-{i}".encode("utf-8")
+        payload = f"unit-{i}".encode()
         commitment = WorkCommitment.over(
             DEMO_WORK_CLASS, payload, DEMO_CODE_VERSION, {"runtime": "demo"}
         )
@@ -129,7 +128,7 @@ def cmd_simulate(args: argparse.Namespace) -> int:
         if cheating:
             # Phantom reuse: bill for a unit never actually computed, and
             # inflate the hinted baseline while you are at it.
-            output_digest = digest_bytes(f"fabricated-{i}".encode("utf-8"))
+            output_digest = digest_bytes(f"fabricated-{i}".encode())
             hint = 600.0
         elif inflating:
             output_digest = true_output
@@ -154,7 +153,7 @@ def cmd_simulate(args: argparse.Namespace) -> int:
             rejected.append(f"{claim.claim_id[:8]}: {exc.reason}")
 
     seed_commitment = SeedCommitment(
-        seed=hashlib.sha256(f"epoch-seed-{args.seed}".encode("utf-8")).digest()
+        seed=hashlib.sha256(f"epoch-seed-{args.seed}".encode()).digest()
     )
     print(f"epoch seed commitment (published before claims): {seed_commitment.commitment}")
     seed = seed_commitment.reveal()
@@ -169,7 +168,7 @@ def cmd_simulate(args: argparse.Namespace) -> int:
         print(f"rejected at intake: {len(rejected)}")
     print(report.summary())
     print()
-    by_kind: Dict[str, int] = {}
+    by_kind: dict[str, int] = {}
     for proof in engine.fraud_proofs():
         by_kind[proof.kind.value] = by_kind.get(proof.kind.value, 0) + 1
     for kind, count in sorted(by_kind.items()):
@@ -229,7 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     return args.func(args)
 

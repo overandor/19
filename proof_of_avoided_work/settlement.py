@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 from .audit import (
     DoubleClaimIndex,
@@ -52,7 +51,7 @@ class ClaimRejected(Exception):
     claim or a bad signature) rather than merely unpriceable.
     """
 
-    def __init__(self, reason: str, fraud_proof: Optional[FraudProof] = None) -> None:
+    def __init__(self, reason: str, fraud_proof: FraudProof | None = None) -> None:
         super().__init__(reason)
         self.reason = reason
         self.fraud_proof = fraud_proof
@@ -84,7 +83,7 @@ class EpochReport:
     settled_credits: float
     voided_credits: float
     slashed_credits: float
-    fraud_proofs: List[FraudProof] = field(default_factory=list)
+    fraud_proofs: list[FraudProof] = field(default_factory=list)
     baseline_samples_added: int = 0
 
     def summary(self) -> str:
@@ -112,11 +111,11 @@ class SettlementEngine:
         self.auditor_pubkey = auditor_pubkey
         self.credits_per_second_saved = credits_per_second_saved
         self.penalty_multiplier = penalty_multiplier
-        self._entries: Dict[str, EscrowEntry] = {}
+        self._entries: dict[str, EscrowEntry] = {}
         self._dedup = DoubleClaimIndex()
-        self._bonds: Dict[str, float] = {}
-        self._slashed: Dict[str, float] = {}
-        self._fraud_proofs: List[FraudProof] = []
+        self._bonds: dict[str, float] = {}
+        self._slashed: dict[str, float] = {}
+        self._fraud_proofs: list[FraudProof] = []
 
     # ── bonds ──────────────────────────────────────────────────────────
 
@@ -205,7 +204,7 @@ class SettlementEngine:
             e for e in entries if is_selected(seed, e.claim.record_hash, audit_rate)
         ]
 
-        proofs: List[FraudProof] = []
+        proofs: list[FraudProof] = []
         guilty: set[str] = set()
         samples_added = 0
 
@@ -258,17 +257,17 @@ class SettlementEngine:
 
     # ── views ──────────────────────────────────────────────────────────
 
-    def entries(self, claimant_pubkey: Optional[str] = None) -> List[EscrowEntry]:
+    def entries(self, claimant_pubkey: str | None = None) -> list[EscrowEntry]:
         return [
             e
             for e in self._entries.values()
             if claimant_pubkey is None or e.claim.claimant_pubkey == claimant_pubkey
         ]
 
-    def settled_credits(self, claimant_pubkey: Optional[str] = None) -> float:
+    def settled_credits(self, claimant_pubkey: str | None = None) -> float:
         return sum(e.credited for e in self.entries(claimant_pubkey))
 
-    def fraud_proofs(self) -> List[FraudProof]:
+    def fraud_proofs(self) -> list[FraudProof]:
         return list(self._fraud_proofs)
 
     def _slash(self, claimant_pubkey: str) -> float:

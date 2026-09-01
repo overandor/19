@@ -24,8 +24,8 @@ import hashlib
 import json
 import time
 import uuid
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
-from typing import Mapping, Optional
 
 from solders.keypair import Keypair
 from solders.pubkey import Pubkey
@@ -71,8 +71,8 @@ class WorkCommitment:
         work_class: str,
         payload: bytes,
         code_version: str,
-        env: Optional[Mapping[str, object]] = None,
-    ) -> "WorkCommitment":
+        env: Mapping[str, object] | None = None,
+    ) -> WorkCommitment:
         return cls(
             work_class=work_class,
             input_digest=digest_bytes(payload),
@@ -100,7 +100,7 @@ class ReuseClaim:
     epoch: int
     claimant_pubkey: str
     signature: str = ""
-    claimed_baseline_seconds: Optional[float] = None
+    claimed_baseline_seconds: float | None = None
     claim_id: str = field(default_factory=lambda: uuid.uuid4().hex)
     created_at: int = field(default_factory=lambda: int(time.time()))
 
@@ -165,7 +165,7 @@ class ReuseClaim:
         return data
 
     @classmethod
-    def from_dict(cls, data: dict) -> "ReuseClaim":
+    def from_dict(cls, data: dict) -> ReuseClaim:
         return cls(
             commitment=WorkCommitment(**data["commitment"]),
             output_digest=data["output_digest"],
@@ -185,7 +185,7 @@ def sign_claim(
     actual_cost_seconds: float,
     epoch: int,
     signer: Keypair,
-    claimed_baseline_seconds: Optional[float] = None,
+    claimed_baseline_seconds: float | None = None,
 ) -> ReuseClaim:
     claim = ReuseClaim(
         commitment=commitment,

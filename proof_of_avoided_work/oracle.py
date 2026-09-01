@@ -28,7 +28,6 @@ from __future__ import annotations
 import statistics
 import time
 from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Optional
 
 from solders.keypair import Keypair
 from solders.pubkey import Pubkey
@@ -124,7 +123,7 @@ class AdmissibleBaseline:
 class SignedSnapshot:
     """A point-in-time, signed publication of every usable distribution."""
 
-    distributions: Dict[str, BaselineDistribution]
+    distributions: dict[str, BaselineDistribution]
     created_at: int
     signer_pubkey: str
     signature: str
@@ -167,7 +166,7 @@ class BaselineOracle:
         self.min_samples = min_samples
         self.min_measurers = min_measurers
         self.sigma_k = sigma_k
-        self._samples: Dict[str, List[BaselineSample]] = {}
+        self._samples: dict[str, list[BaselineSample]] = {}
 
     def add_sample(self, sample: BaselineSample) -> None:
         self._samples.setdefault(sample.work_class, []).append(sample)
@@ -179,10 +178,10 @@ class BaselineOracle:
         self.add_sample(sample)
         return sample
 
-    def samples(self, work_class: str) -> List[BaselineSample]:
+    def samples(self, work_class: str) -> list[BaselineSample]:
         return list(self._samples.get(work_class, ()))
 
-    def distribution(self, work_class: str) -> Optional[BaselineDistribution]:
+    def distribution(self, work_class: str) -> BaselineDistribution | None:
         samples = self._samples.get(work_class, [])
         measurers = {s.measurer_pubkey for s in samples}
         if len(samples) < self.min_samples or len(measurers) < self.min_measurers:
@@ -200,7 +199,7 @@ class BaselineOracle:
         )
 
     def admissible_baseline(
-        self, work_class: str, claimed_seconds: Optional[float] = None
+        self, work_class: str, claimed_seconds: float | None = None
     ) -> AdmissibleBaseline:
         """Price a claim's counterfactual: `min(hint, reference)`.
 

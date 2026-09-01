@@ -36,9 +36,9 @@ import hashlib
 import hmac
 import secrets
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
 from .commitments import ReuseClaim, WorkCommitment, digest_object
 
@@ -62,7 +62,7 @@ class FraudProof:
     claim_id: str
     claimant_pubkey: str
     detail: str
-    evidence: Dict[str, object] = field(default_factory=dict)
+    evidence: dict[str, object] = field(default_factory=dict)
 
     def digest(self) -> str:
         return digest_object(
@@ -96,7 +96,7 @@ Reexecutor = Callable[[WorkCommitment], ReexecutionResult]
 class SeedCommitment:
     """Commit-reveal over the epoch's sampling seed."""
 
-    def __init__(self, seed: Optional[bytes] = None) -> None:
+    def __init__(self, seed: bytes | None = None) -> None:
         self._seed = seed if seed is not None else secrets.token_bytes(32)
         self.commitment = hashlib.sha256(self._seed).hexdigest()
         self.created_at = int(time.time())
@@ -134,8 +134,8 @@ def is_selected(seed: bytes, record_hash: str, audit_rate: float) -> bool:
 
 
 def select_claims(
-    seed: bytes, claims: List[ReuseClaim], audit_rate: float
-) -> List[ReuseClaim]:
+    seed: bytes, claims: list[ReuseClaim], audit_rate: float
+) -> list[ReuseClaim]:
     return [c for c in claims if is_selected(seed, c.record_hash, audit_rate)]
 
 
@@ -143,8 +143,8 @@ def select_claims(
 class AuditVerdict:
     claim_id: str
     passed: bool
-    fraud_proof: Optional[FraudProof] = None
-    observed_cold_cost_seconds: Optional[float] = None
+    fraud_proof: FraudProof | None = None
+    observed_cold_cost_seconds: float | None = None
 
     def to_dict(self) -> dict:
         data = asdict(self)
@@ -157,9 +157,9 @@ class DoubleClaimIndex:
     """Remembers every dedup key seen, so a repeat is provable for free."""
 
     def __init__(self) -> None:
-        self._seen: Dict[str, str] = {}
+        self._seen: dict[str, str] = {}
 
-    def register(self, claim: ReuseClaim) -> Optional[FraudProof]:
+    def register(self, claim: ReuseClaim) -> FraudProof | None:
         prior = self._seen.get(claim.dedup_key)
         if prior is not None:
             return FraudProof(
@@ -240,7 +240,7 @@ def audit_claim(claim: ReuseClaim, reexecutor: Reexecutor) -> AuditVerdict:
 
 def baseline_inflation_proof(
     claim: ReuseClaim, bound_seconds: float
-) -> Optional[FraudProof]:
+) -> FraudProof | None:
     """Flag a hint that exceeds what the oracle's samples admit.
 
     Settlement already clips to the bound, so inflation cannot pay; this

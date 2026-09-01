@@ -8,6 +8,12 @@ python-json-logger>=2.0.7,<3.0
 
 # memory_credit_daemon (devnet/localnet-only Solana credits token, see
 # docs/MEMORY_CREDIT_DAEMON.md) — also bundles the spl.token namespace.
-solana>=0.37.0,<1.0
+# Capped below 0.40: that release drops the sync `solana.rpc.api.Client`
+# (async only) and moves the SPL params dataclasses from
+# `spl.token.instructions` to `spl.token.models`, so an unpinned install
+# breaks collection of tests/test_memory_credit_daemon.py at import time.
+# Moving past it means porting solana_submit.py to AsyncClient, which
+# needs a reachable RPC endpoint to verify and so is not done here.
+solana>=0.37.0,<0.40
 
 # Dev / test (install with: pip install -r requirements-dev.txt)

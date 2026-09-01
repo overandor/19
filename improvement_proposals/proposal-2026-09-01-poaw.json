@@ -1,0 +1,58 @@
+{
+  "proposal_id": "prop-2026-09-01-poaw",
+  "created_utc": "2026-09-01T00:00:00Z",
+  "source_feedback": {
+    "event_type": "manual_request",
+    "url": "https://github.com/overandor/19/tree/claude/nuclear-launch-innovation-seed-bvz2pa",
+    "author": "repository owner (direct request)",
+    "timestamp_utc": "2026-09-01T00:00:00Z"
+  },
+  "interpretation": "Find an unsolved problem in this repository's existing line of work whose solution would be independently valuable, and solve its tractable core rather than describing it. The memory credit daemon's compute-reuse receipts are signed self-reports: the signature proves authorship, not the saving, and the claimant supplies the baseline the payout is computed from. That makes the meter unfalsifiable and therefore worthless as a basis for credit.",
+  "category": "architecture",
+  "safety_review": {
+    "allowed": true,
+    "reason": "Adds a verification layer over an existing research-only metering prototype. No trading, execution, or order-routing path is introduced; no mainnet code path is added; bonds and slashing are in-memory bookkeeping in a Python object, not custody of any asset. Inherits and does not relax safety_policies/research_only_policy.md."
+  },
+  "affected_files": [
+    "proof_of_avoided_work/__init__.py",
+    "proof_of_avoided_work/__main__.py",
+    "proof_of_avoided_work/audit.py",
+    "proof_of_avoided_work/cli.py",
+    "proof_of_avoided_work/commitments.py",
+    "proof_of_avoided_work/economics.py",
+    "proof_of_avoided_work/oracle.py",
+    "proof_of_avoided_work/settlement.py",
+    "proof_of_avoided_work/README.md",
+    "tests/test_proof_of_avoided_work.py",
+    "docs/PROOF_OF_AVOIDED_WORK.md",
+    "README.md",
+    "requirements.txt"
+  ],
+  "diff_summary": "Adds proof_of_avoided_work/, which makes a compute-reuse claim falsifiable: work commitments pin a claim to a re-executable unit; a baseline oracle prices claims against measured cold costs at the robust centre (median/MAD) behind a distinct-measurer quorum, so an inflated hint earns nothing rather than being merely capped; commit-reveal sampling selects claims for re-execution unpredictably in advance and reproducibly afterwards; and a settlement engine escrows claims, slashes on fraud proofs, and releases only survivors to the credit ledger. economics.py solves for the minimum audit rate that makes fraud negative-EV and reports configurations where no feasible rate exists. Also pins solana<0.40 to repair pre-existing collection failures in tests/test_memory_credit_daemon.py caused by upstream API removals.",
+  "validation_plan": {
+    "tests": [
+      "tests/test_proof_of_avoided_work.py (69 tests: adversarial cases for baseline inflation, phantom reuse, double claim, and forgery; sampling determinism and reproducibility; closed-form checks on the deterrence math; end-to-end negative-EV verification)",
+      "full suite: 124 passed",
+      "ruff check .: clean"
+    ],
+    "simulations": [
+      "python -m proof_of_avoided_work simulate — deterministic honest/cheater/inflater epoch; cheater settles 0 credits and is fully slashed, inflater settles exactly what honest claimants settle",
+      "python -m proof_of_avoided_work plan — audit-rate feasibility solver over deterrence floor and budget ceiling"
+    ]
+  },
+  "confidence": "moderate",
+  "risk_notes": [
+    "Re-execution requires the auditor to hold the claim's input, so a real deployment leaks customer data to the auditor unless the customer audits their own claims; that model is described in the docs but not implemented.",
+    "A single auditor is trusted to actually perform re-execution. Commit-reveal makes selection honest but nothing forces the work or prevents auditor/claimant collusion.",
+    "The measurer quorum counts distinct keys and keys are free, so the oracle is Sybil-vulnerable without a permissioned or staked measurer set.",
+    "Only work classes that are deterministic under their commitment can be metered; non-deterministic inference is excluded, which is a large share of real traffic.",
+    "The deterrence model assumes a risk-neutral claimant and a bond genuinely at risk. Bonds here are numbers in a dict.",
+    "The commercial framing in the docs is an unvalidated thesis, not evidence of demand, and is labelled as such.",
+    "Pinning solana<0.40 freezes the credit daemon on a release whose sync RPC client upstream has deprecated; unpinning later requires porting solana_submit.py to AsyncClient against a reachable RPC endpoint."
+  ],
+  "rollback_notes": [
+    "Delete proof_of_avoided_work/, tests/test_proof_of_avoided_work.py, and docs/PROOF_OF_AVOIDED_WORK.md, and revert the two README.md list entries. Nothing outside that package imports it, and memory_credit_daemon/ is unmodified, so removal restores prior behaviour exactly.",
+    "The requirements.txt pin is independent and should be kept on rollback: without it, tests/test_memory_credit_daemon.py fails to collect on a fresh install."
+  ],
+  "status": "ready_for_review"
+}

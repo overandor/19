@@ -6,8 +6,8 @@ pydantic>=2.6.0,<3.0
 slowapi>=0.1.9,<1.0
 python-json-logger>=2.0.7,<3.0
 
-# memory_credit_daemon (devnet/localnet-only Solana credits token, see
-# docs/MEMORY_CREDIT_DAEMON.md) — also bundles the spl.token namespace.
+# memory_credit_daemon (Solana credits token, devnet/localnet by default;
+# see docs/MEMORY_CREDIT_DAEMON.md) — also bundles the spl.token namespace.
 # Capped below 0.40: that release drops the sync `solana.rpc.api.Client`
 # (async only) and moves the SPL params dataclasses from
 # `spl.token.instructions` to `spl.token.models`, so an unpinned install

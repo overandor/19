@@ -250,6 +250,15 @@ do. It is deterministic given `--seed`.
 
 This inherits the repository's research-only constraints
 (`safety_policies/research_only_policy.md`) and the credit daemon's
-limits (`docs/MEMORY_CREDIT_DAEMON.md`): no mainnet path, no trading, no
-claim that credits have or should have value. Bonds and slashing here are
+limits (`docs/MEMORY_CREDIT_DAEMON.md`): no trading, and no claim that
+credits have or should have value. Bonds and slashing here are
 bookkeeping in a Python object, not custody of anything.
+
+The daemon's mainnet guard is now an opt-in rather than a ban, and
+`minting.py` is the reason that is defensible: an authorization is issued
+only for audited, settled credits, and on mainnet only against a pool
+shown non-drainable at the configured bond and audit rate. That closes
+the question this module is about. It does not close the two the credit
+daemon's doc still lists as unmet — an audited integration, and legal
+review of what the token represents — neither of which is an engineering
+problem.

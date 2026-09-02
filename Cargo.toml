@@ -1,0 +1,47 @@
+# Rust workspace for the Personal Web Runtime foundation.
+#
+# The repository root is a Python project (see README.md); this workspace
+# lives alongside it rather than replacing it. Nothing here imports the
+# Python packages and nothing there imports these crates — the two are
+# independent, and the foundation is Rust because the runtime it is being
+# built toward is local-first and long-lived.
+#
+# Only crates with implemented, tested content are members. Empty crates
+# for planned domains are deliberately absent: a directory is not an
+# implementation, and BUILD_STATE.md records what does not exist yet.
+
+[workspace]
+resolver = "3"
+members = [
+    "crates/core",
+    "crates/capability",
+    "crates/provenance",
+    "crates/memory",
+    "crates/compute",
+    "crates/storage",
+    "apps/demo",
+    "tests/invariants",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+
+[workspace.dependencies]
+pwr-core = { path = "crates/core" }
+pwr-capability = { path = "crates/capability" }
+pwr-provenance = { path = "crates/provenance" }
+pwr-memory = { path = "crates/memory" }
+pwr-compute = { path = "crates/compute" }
+pwr-storage = { path = "crates/storage" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }

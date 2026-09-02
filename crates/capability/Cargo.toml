@@ -1,0 +1,15 @@
+[package]
+name = "pwr-capability"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Capability vocabulary and the deny-by-default policy evaluator."
+
+[dependencies]
+pwr-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

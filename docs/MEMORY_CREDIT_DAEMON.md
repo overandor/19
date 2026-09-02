@@ -1,4 +1,4 @@
-# Memory Credit Daemon (v0, devnet/localnet only)
+# Memory Credit Daemon (v0, devnet/localnet by default)
 
 `memory_credit_daemon/` is a small prototype for one narrow idea: when a
 research run reuses previously-computed state instead of recomputing it
@@ -9,13 +9,23 @@ SPL token so the balance is visible outside the ledger file itself.
 ## Scope, in one paragraph
 
 This is a metering and bookkeeping tool, not a financial product. There
-is no mainnet code path anywhere in this package, no price discovery, no
-liquidity pool, and no claim that the resulting token has, or should
-have, real value. `solana_submit.make_client()` raises
-`MainnetRpcBlockedError` for any RPC URL containing `"mainnet"`, so this
-isn't just a documentation promise — it's enforced in code. Treating the
-credits token as tradeable or speculative is explicitly out of scope;
-see "Why a token at all" below for why it exists at all.
+is no price discovery and no liquidity pool here, and no claim that the
+resulting token has, or should have, real value. Treating the credits
+token as tradeable or speculative is out of scope for what this package
+does; see "Why a token at all" below for why it exists.
+
+**The mainnet guard changed, and this section used to say otherwise.**
+`solana_submit.make_client()` still refuses any RPC URL containing
+`"mainnet"` by *default*, so misconfiguration cannot reach mainnet-beta.
+It no longer refuses absolutely: `allow_mainnet=True` is available for a
+deliberate decision. The blanket ban was the right default and the wrong
+guarantee — what actually needs preventing is not *touching* mainnet, it
+is minting credits nobody verified into a pool anyone can sell into. That
+is now enforced where it belongs, in
+`proof_of_avoided_work.minting.authorize_mint`, which issues an amount
+only for claims that reached `SETTLED` through an audit and, on mainnet,
+only once the pool is shown non-drainable. See "Mainnet" below for what
+is still unmet.
 
 This complements, and does not relax, the repository's existing
 research-only constraints (`safety_policies/research_only_policy.md`):
@@ -107,9 +117,34 @@ actual cost incurred; credits default to 1 per second saved
 
 ## Mainnet
 
-Not in scope for this package. A real deployment would need an audited
-program (or at minimum an audited integration), legal review of what the
-token represents and who's liable for it, and a much harder answer to
-"what happens when the credits/seconds-saved conversion rate is wrong"
-than a v0 prototype can give. `make_client()` enforces this in code
-rather than leaving it as a README warning.
+**Reachable in code. Not ready in fact.** These are different claims and
+this section used to conflate them.
+
+An earlier version of this document said mainnet was "not in scope" and
+that `make_client()` enforced that in code. The code changed; that
+sentence did not, and was wrong for a while. What is true now:
+
+- `make_client()` refuses a `"mainnet"` URL unless the caller passes
+  `allow_mainnet=True`. Accidents are still impossible; decisions are not.
+- `mint_credits_onchain()` takes an unconstrained `amount` and must not be
+  pointed at mainnet. `mint_authorized_credits()` takes a
+  `MintAuthorization` instead and reads the amount off it, so there is no
+  parameter a caller can use to mint more than was verified.
+- `authorize_mint()` issues an authorization only from `SETTLED`
+  settlement entries. Escrowed and voided claims are worth zero. On
+  mainnet it additionally requires the pool, the bond and the audit rate,
+  runs `assess_pool_solvency`, and refuses outright if the bond is
+  denominated in the credits it secures.
+
+The original three prerequisites were named for good reasons and **two of
+them are still entirely unmet**:
+
+| Prerequisite | Status |
+|---|---|
+| An audited program, or at minimum an audited integration | **Unmet.** Still the stock SPL Token Program driven directly. Nothing here has been audited by anyone. |
+| Legal review of what the token represents and who is liable for it | **Unmet.** Not addressed at all, and not a question engineering can answer. |
+| "What happens when the credits/seconds-saved conversion rate is wrong" | **Partly answered.** The baseline oracle bounds the seconds→credits input so a claimant cannot inflate it, and `assess_pool_solvency` answers the adversarial half — whether a wrong valuation can be *exploited* to drain a pool. It does not answer the honest half: a rate that is simply miscalibrated, in good faith, still misprices everything. |
+
+So the code can now do this and should not yet. Nothing in this
+repository has been deployed to mainnet, and the two unmet rows above are
+not engineering tasks that a further increment closes.

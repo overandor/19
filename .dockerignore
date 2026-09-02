@@ -11,3 +11,11 @@ requirements-dev.txt
 *.md
 REDESIGN_PLAN.md
 report.txt
+
+# Rust workspace — the runtime image is Python; none of this is needed in it,
+# and target/ is hundreds of MB of build artifacts.
+target/
+crates/
+apps/
+Cargo.toml
+Cargo.lock

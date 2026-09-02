@@ -38,6 +38,9 @@ for the evidence table.
   writes, verify-on-read, and schema-versioned records.
 - **`tests/invariants`** — 19 executable checks of the laws in
   INVARIANTS.md.
+- **`apps/demo`** — a runnable walkthrough of every crate through its
+  public API (`cargo run -p pwr-demo`), and `demo.sh`, which runs the
+  whole stack: memory_shell, proof_of_avoided_work, then the foundation.
 - Documentation: REPOSITORY_AUDIT.md, INVARIANTS.md, ARCHITECTURE.md,
   MEMORY_MODEL.md, COGNITIVE_RUNTIME.md, docs/adr/0001-local-persistence.md.
 

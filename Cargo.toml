@@ -19,6 +19,7 @@ members = [
     "crates/memory",
     "crates/compute",
     "crates/storage",
+    "apps/demo",
     "tests/invariants",
 ]
 

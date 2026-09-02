@@ -111,6 +111,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pwr-demo"
+version = "0.1.0"
+dependencies = [
+ "pwr-capability",
+ "pwr-compute",
+ "pwr-core",
+ "pwr-memory",
+ "pwr-provenance",
+ "pwr-storage",
+]
+
+[[package]]
 name = "pwr-invariants"
 version = "0.1.0"
 dependencies = [

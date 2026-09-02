@@ -1,0 +1,21 @@
+[package]
+name = "pwr-invariants"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Executable checks that the laws in INVARIANTS.md actually hold."
+publish = false
+
+[dependencies]
+pwr-core.workspace = true
+pwr-capability.workspace = true
+pwr-provenance.workspace = true
+pwr-memory.workspace = true
+pwr-compute.workspace = true
+pwr-storage.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

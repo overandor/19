@@ -12,3 +12,10 @@ __pycache__/
 # Editor / OS
 .DS_Store
 *.swp
+
+# Rust
+/target/
+**/*.rs.bk
+
+# Build output
+/dist/

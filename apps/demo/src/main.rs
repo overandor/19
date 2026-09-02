@@ -206,10 +206,7 @@ fn main() {
         .background();
     let editor = WorkloadMetadata::new("interactive editor", Bytes::from_gib(4));
 
-    println!(
-        "    {:<22} {:<16} {:<16} {}",
-        "", "cache", "background", "interactive"
-    );
+    println!("                           cache            background       interactive");
     for pressure in [
         pwr_compute::PressureState::Green,
         pwr_compute::PressureState::Yellow,
@@ -219,13 +216,11 @@ fn main() {
     ] {
         // Width specifiers do not pad `{:?}`, so each cell is rendered
         // to a String first and then padded.
-        println!(
-            "    {:<22} {:<16} {:<16} {}",
-            format!("{pressure:?}"),
-            format!("{:?}", decide(pressure, &cache)),
-            format!("{:?}", decide(pressure, &batch)),
-            format!("{:?}", decide(pressure, &editor)),
-        );
+        let label = format!("{pressure:?}");
+        let for_cache = format!("{:?}", decide(pressure, &cache));
+        let for_batch = format!("{:?}", decide(pressure, &batch));
+        let for_editor = format!("{:?}", decide(pressure, &editor));
+        println!("    {label:<22} {for_cache:<16} {for_batch:<16} {for_editor}");
     }
 
     // ── logging ────────────────────────────────────────────────────────
